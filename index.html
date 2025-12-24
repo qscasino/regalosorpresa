@@ -7,38 +7,53 @@
 
   <style>
     :root{
-      --bg1:#061a16;
-      --bg2:#0b2a23;
-      --card:#0e2f28cc;
+      --bg1:#1a070a;        /* vino oscuro */
+      --bg2:#3a0b10;        /* rojo profundo */
+      --card:#2a0a10cc;     /* panel */
       --stroke:#ffffff22;
       --text:#ffffff;
       --muted:#ffffffb3;
+
       --gold:#ffd36a;
+      --gold2:#ffb84d;
+
       --danger:#ff5b6a;
       --ok:#35d07f;
-      --shadow: 0 18px 55px rgba(0,0,0,.45);
+
+      --shadow: 0 18px 55px rgba(0,0,0,.55);
       --radius: 18px;
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
 
     *{box-sizing:border-box}
-    html,body{height:100%; margin:0; font-family:var(--font); color:var(--text); background: radial-gradient(1200px 800px at 50% 0%, #184a3f 0%, var(--bg2) 35%, var(--bg1) 100%); overflow:hidden;}
+    html,body{
+      height:100%;
+      margin:0;
+      font-family:var(--font);
+      color:var(--text);
+      background:
+        radial-gradient(900px 600px at 50% 0%, rgba(255,211,106,.28) 0%, rgba(255,211,106,0) 55%),
+        radial-gradient(1200px 900px at 50% 10%, #6a101a 0%, var(--bg2) 38%, var(--bg1) 100%);
+      overflow:hidden;
+    }
 
     /* ===== PRELOADER ===== */
     #preloader{
       position:fixed; inset:0;
       display:flex; align-items:center; justify-content:center;
-      background: radial-gradient(900px 700px at 50% 30%, #1c5b4d 0%, #0a241f 55%, #061a16 100%);
+      background:
+        radial-gradient(900px 700px at 50% 30%, rgba(255,211,106,.22) 0%, rgba(255,211,106,0) 55%),
+        radial-gradient(900px 700px at 50% 20%, #7b1220 0%, #2a0a10 55%, #120407 100%);
       z-index:9999;
     }
     .pre-card{
       width:min(520px, 92vw);
       padding:22px 18px 18px;
       border:1px solid var(--stroke);
-      background:linear-gradient(180deg, #0f3b31cc, #0a221dcc);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.22));
       border-radius:var(--radius);
       box-shadow:var(--shadow);
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
       text-align:center;
     }
     .brand{
@@ -49,11 +64,11 @@
       max-width:min(210px, 65vw);
       max-height:64px;
       object-fit:contain;
-      filter: drop-shadow(0 10px 18px rgba(0,0,0,.45));
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.55));
     }
     .brand .fallback{
-      font-weight:800; letter-spacing:.6px;
-      color:#fff;
+      font-weight:900;
+      letter-spacing:.8px;
       text-transform:uppercase;
       font-size:18px;
       opacity:.95;
@@ -62,14 +77,14 @@
       height:14px;
       border-radius:999px;
       border:1px solid var(--stroke);
-      background:#04120f;
+      background:#0b0406;
       overflow:hidden;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
     }
     .bar > div{
       height:100%;
       width:0%;
-      background: linear-gradient(90deg, #2be2a1, #ffd36a, #ff5b6a);
+      background: linear-gradient(90deg, #ffd36a, #ffb84d, #ff5b6a);
       border-radius:999px;
       transition: width .12s ease;
     }
@@ -93,10 +108,9 @@
       padding:12px;
     }
 
-    /* capa snow */
+    /* snow */
     #snowLayer{ position:absolute; inset:0; pointer-events:none; z-index:2; }
 
-    /* fondo + canvas overlay */
     #stage{
       position:relative;
       width:100%;
@@ -113,7 +127,7 @@
       object-fit:contain;
       user-select:none;
       -webkit-user-drag:none;
-      filter: drop-shadow(0 20px 40px rgba(0,0,0,.55));
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,.62));
     }
 
     /* renderer overlay */
@@ -143,29 +157,29 @@
       padding:10px 12px;
       border:1px solid var(--stroke);
       border-radius:999px;
-      background:linear-gradient(180deg, #0f3b31cc, #0a221dcc);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 12px 30px rgba(0,0,0,.30);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.18));
+      backdrop-filter: blur(10px);
+      box-shadow: 0 12px 30px rgba(0,0,0,.35);
       font-size:13px;
       color:var(--muted);
       max-width:min(520px, 92vw);
     }
-    .pill strong{ color:#fff; font-weight:800; }
+    .pill strong{ color:#fff; font-weight:900; }
 
     .btn{
       pointer-events:auto;
       border:1px solid var(--stroke);
-      background:linear-gradient(180deg, #123c32cc, #0a231dcc);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.18));
       color:#fff;
       padding:10px 12px;
       border-radius:999px;
-      font-weight:800;
+      font-weight:900;
       letter-spacing:.2px;
       cursor:pointer;
-      box-shadow: 0 12px 30px rgba(0,0,0,.30);
-      transition: transform .12s ease, border-color .12s ease;
+      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+      transition: transform .12s ease, border-color .12s ease, filter .12s ease;
     }
-    .btn:hover{ transform: translateY(-1px); border-color:#ffffff55; }
+    .btn:hover{ transform: translateY(-1px); border-color:#ffffff55; filter: brightness(1.05); }
     .btn:active{ transform: translateY(0px) scale(.99); }
 
     /* ===== MODAL ===== */
@@ -175,14 +189,16 @@
       align-items:center; justify-content:center;
       padding:16px;
       z-index:9998;
-      background: rgba(0,0,0,.55);
-      backdrop-filter: blur(6px);
+      background: rgba(0,0,0,.62);
+      backdrop-filter: blur(7px);
     }
     #modal.show{ display:flex; }
     .modal-card{
       width:min(520px, 92vw);
       border-radius:var(--radius);
-      background:linear-gradient(180deg, #0f3b31ee, #061a16ee);
+      background:
+        radial-gradient(700px 380px at 50% 0%, rgba(255,211,106,.18), rgba(255,211,106,0) 65%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.32));
       border:1px solid var(--stroke);
       box-shadow: var(--shadow);
       padding:18px 16px 14px;
@@ -231,8 +247,8 @@
       flex-wrap:wrap;
     }
     .btn-primary{
-      background: linear-gradient(90deg, #2be2a1, #ffd36a);
-      color:#092018;
+      background: linear-gradient(90deg, #ffd36a, #ffb84d, #ff5b6a);
+      color:#24040b;
       border-color:transparent;
     }
     .btn-ghost{
@@ -260,7 +276,7 @@
       top:-10px;
       width:6px; height:6px;
       border-radius:999px;
-      background: rgba(255,255,255,.85);
+      background: rgba(255,255,255,.88);
       box-shadow: 0 0 10px rgba(255,255,255,.35);
       opacity:.9;
       animation: fall linear infinite;
@@ -276,7 +292,8 @@
   <div id="preloader">
     <div class="pre-card">
       <div class="brand">
-        <img id="brandLogo" src="assets/logo.png" alt="Logo" onerror="this.style.display='none'; document.getElementById('brandFallback').style.display='block';">
+        <img id="brandLogo" src="assets/logo.png" alt="Logo"
+             onerror="this.style.display='none'; document.getElementById('brandFallback').style.display='block';">
         <div id="brandFallback" class="fallback" style="display:none;">TU MARCA</div>
       </div>
 
@@ -291,6 +308,7 @@
     <div id="snowLayer"></div>
 
     <div id="stage">
+      <!-- IMPORTANTE: poné tu Santa en assets/santa.png -->
       <img id="santaBg" src="assets/santa.png" alt="Santa" draggable="false" />
       <div id="gl"></div>
 
@@ -329,12 +347,12 @@
     // ========= CONFIG =========
     const STORAGE_KEY = "santa_gift_choice_v1";
 
-    // Coordenadas NORMALIZADAS (0..1) sobre la imagen de Santa (probadas para tu imagen)
-    // Si lo ves corrido, tocás SOLO estos números:
-    const HAND_L = { x: 0.29, y: 0.52 }; // mano izquierda (para el usuario: lado izquierdo de la pantalla)
-    const HAND_R = { x: 0.71, y: 0.52 }; // mano derecha
+    // Coordenadas NORMALIZADAS (0..1) sobre la imagen
+    // Si los regalos quedan corridos, ajustás SOLO esto:
+    const HAND_L = { x: 0.29, y: 0.52 };
+    const HAND_R = { x: 0.71, y: 0.52 };
 
-    // Premios (fijos por regalo)
+    // Premios fijos por regalo
     const PRIZES = {
       left: {
         title: "🎁 Bono 200% en tu próxima carga",
@@ -346,36 +364,66 @@
       }
     };
 
-    // ========= PRELOADER =========
+    // ========= PRELOADER (FIX 99% + fallback) =========
     const preloader = document.getElementById("preloader");
     const barFill = document.getElementById("barFill");
     const pct = document.getElementById("pct");
     const santaImg = document.getElementById("santaBg");
 
-    // Simula progreso, pero espera a que cargue la imagen
     let progress = 0;
-    let imgReady = false;
 
-    santaImg.addEventListener("load", () => { imgReady = true; });
+    function waitForImage(img, timeoutMs = 4500){
+      return new Promise((resolve) => {
+        // cache
+        if (img.complete && img.naturalWidth > 0) return resolve(true);
+
+        let done = false;
+        const finish = (ok) => {
+          if (done) return;
+          done = true;
+          cleanup();
+          resolve(ok);
+        };
+
+        const onLoad = () => finish(true);
+        const onErr  = () => finish(false);
+
+        const cleanup = () => {
+          img.removeEventListener("load", onLoad);
+          img.removeEventListener("error", onErr);
+          clearTimeout(t);
+        };
+
+        img.addEventListener("load", onLoad, { once:true });
+        img.addEventListener("error", onErr, { once:true });
+
+        const t = setTimeout(() => finish(false), timeoutMs);
+      });
+    }
+
+    const imgPromise = waitForImage(santaImg, 5000);
 
     const pTimer = setInterval(() => {
-      // sube rápido, y al final espera recursos
-      const step = (progress < 70) ? (Math.random() * 12 + 6) : (Math.random() * 6 + 2);
+      const step = (progress < 70) ? (Math.random()*10 + 6) : (Math.random()*4 + 1.5);
       progress = Math.min(99, progress + step);
+
       barFill.style.width = progress + "%";
       pct.textContent = Math.floor(progress) + "%";
-
-      if (imgReady && progress >= 92) {
-        progress = 100;
-        barFill.style.width = "100%";
-        pct.textContent = "100%";
-        clearInterval(pTimer);
-        setTimeout(() => {
-          preloader.style.display = "none";
-          start();
-        }, 350);
-      }
     }, 120);
+
+    Promise.race([
+      imgPromise,
+      new Promise(res => setTimeout(() => res(false), 5200))
+    ]).then(() => {
+      clearInterval(pTimer);
+      barFill.style.width = "100%";
+      pct.textContent = "100%";
+
+      setTimeout(() => {
+        preloader.style.display = "none";
+        start();
+      }, 350);
+    });
 
     // ========= SNOW =========
     function spawnSnow(){
@@ -455,24 +503,23 @@
       renderer.setClearColor(0x000000, 0);
       glHost.appendChild(renderer.domElement);
 
-      // luces suaves navideñas
-      const ambient = new THREE.AmbientLight(0xffffff, 0.85);
+      // luces suaves navideñas (dorado cálido)
+      const ambient = new THREE.AmbientLight(0xffffff, 0.82);
       scene.add(ambient);
 
       const dir = new THREE.DirectionalLight(0xffffff, 0.95);
       dir.position.set(300, 500, 600);
       scene.add(dir);
 
-      const warm = new THREE.PointLight(0xffd36a, 0.8, 1200);
-      warm.position.set(0, 120, 500);
+      const warm = new THREE.PointLight(0xffd36a, 0.95, 1200);
+      warm.position.set(0, 120, 520);
       scene.add(warm);
 
       onResize();
 
       // regalos
-      giftLeft  = createGift({ primary:0x2fd6a0, ribbon:0xffd36a, id:"left"  });
-      giftRight = createGift({ primary:0xff5b6a, ribbon:0xffffff, id:"right" });
-
+      giftLeft  = createGift({ primary:0xff5b6a, ribbon:0xffd36a, id:"left"  }); // rojo + dorado
+      giftRight = createGift({ primary:0x2fd6a0, ribbon:0xffffff, id:"right" }); // verde navidad (contraste)
       scene.add(giftLeft.group);
       scene.add(giftRight.group);
 
@@ -502,13 +549,12 @@
       const imgRect = santaImg.getBoundingClientRect();
 
       function handToWorld(norm){
-        // coord en pantalla dentro de la imagen
         const px = imgRect.left + norm.x * imgRect.width;
         const py = imgRect.top  + norm.y * imgRect.height;
-        // coord dentro del stage
+
         const cx = px - stageRect.left;
         const cy = py - stageRect.top;
-        // world (0,0) centro
+
         const wx = (cx - W/2);
         const wy = (H/2 - cy);
         return { x: wx, y: wy };
@@ -517,8 +563,8 @@
       const L = handToWorld(HAND_L);
       const R = handToWorld(HAND_R);
 
-      const size = Math.min(W, H) * 0.14;     // tamaño del regalo
-      const z = 220;                          // levanta un poco el 3D
+      const size = Math.min(W, H) * 0.14;
+      const z = 220;
 
       giftLeft.group.position.set(L.x, L.y, z);
       giftRight.group.position.set(R.x, R.y, z);
@@ -526,7 +572,6 @@
       giftLeft.group.scale.setScalar(size);
       giftRight.group.scale.setScalar(size);
 
-      // pequeña inclinación para integrarlo con la escena
       giftLeft.group.rotation.set(0.08, -0.25, 0.02);
       giftRight.group.rotation.set(0.08,  0.25, -0.02);
     }
@@ -552,9 +597,9 @@
       rib2.position.y = 0.20;
       group.add(rib2);
 
-      // tapa (pivot para abrir)
+      // tapa con bisagra
       const lidPivot = new THREE.Group();
-      lidPivot.position.set(0, 0.36, -0.52);   // bisagra atrás
+      lidPivot.position.set(0, 0.36, -0.52);
       group.add(lidPivot);
 
       const lid = new THREE.Mesh(new THREE.BoxGeometry(1.04, 0.20, 1.04), matBox);
@@ -571,7 +616,7 @@
       bow2.position.x = 0.16;
       group.add(bow2);
 
-      // “hitbox” invisible para click cómodo
+      // hitbox invisible
       const hit = new THREE.Mesh(
         new THREE.BoxGeometry(1.35, 1.0, 1.35),
         new THREE.MeshBasicMaterial({ transparent:true, opacity:0 })
@@ -586,11 +631,9 @@
 
     function onPointerDown(e){
       if(!canPick) return;
-
-      // evita scroll accidental en mobile
       e.preventDefault();
 
-      // si ya jugó, no deja elegir (pero sí ver premio)
+      // si ya jugó, tocar muestra premio
       const stored = getStored();
       if(stored){
         showStoredPrize();
@@ -598,12 +641,11 @@
       }
 
       const rect = renderer.domElement.getBoundingClientRect();
-      const x = ( (e.clientX - rect.left) / rect.width ) * 2 - 1;
-      const y = - ( (e.clientY - rect.top) / rect.height ) * 2 + 1;
+      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
       mouse.set(x, y);
 
       raycaster.setFromCamera(mouse, camera);
-
       const hits = raycaster.intersectObjects(scene.children, true);
       if(!hits.length) return;
 
@@ -612,7 +654,6 @@
 
       const giftGroup = hit.object.userData.parentGift;
       const which = giftGroup.userData.id;
-
       pickGift(which);
     }
 
@@ -638,7 +679,6 @@
       const start = performance.now();
       const dur = 900;
 
-      // “pop” + tapa abre
       const fromRot = giftObj.lidPivot.rotation.x;
       const toRot = -1.25;
 
@@ -648,12 +688,10 @@
 
       anims.push((t)=>{
         const p = Math.min(1, (t - start) / dur);
-        const ease = (p<0.5) ? (2*p*p) : (1 - Math.pow(-2*p+2,2)/2); // easeInOutQuad
+        const ease = (p<0.5) ? (2*p*p) : (1 - Math.pow(-2*p+2,2)/2);
 
-        // tapa
         giftObj.lidPivot.rotation.x = fromRot + (toRot - fromRot) * ease;
 
-        // escala pop
         let s;
         if(p < 0.35){
           const q = p / 0.35;
@@ -664,14 +702,13 @@
         }
         giftObj.group.scale.setScalar(s);
 
-        // glow / mini giro
         giftObj.group.rotation.y += 0.008;
 
         if(p >= 1){
           giftObj.isOpen = true;
           giftObj.busy = false;
           done && done();
-          return false; // remove anim
+          return false;
         }
         return true;
       });
@@ -679,12 +716,7 @@
 
     function animate(t=performance.now()){
       requestAnimationFrame(animate);
-
-      // run anims
-      if(anims.length){
-        anims = anims.filter(fn => fn(t) !== false);
-      }
-
+      if(anims.length) anims = anims.filter(fn => fn(t) !== false);
       renderer.render(scene, camera);
     }
 
@@ -705,7 +737,7 @@
       if(stored){
         statusPill.innerHTML = "✅ Ya elegiste tu regalo. <strong>¡Felices fiestas!</strong>";
         btnMyPrize.style.display = "inline-flex";
-        canPick = true; // permite tocar para ver premio, pero no elegir otro
+        canPick = true; // permite tocar para ver premio
       } else {
         statusPill.innerHTML = "🎁 Elegí <strong>1 regalo</strong> (solo una vez)";
         btnMyPrize.style.display = "none";
