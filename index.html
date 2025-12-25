@@ -409,9 +409,13 @@
     // ========= CONFIG =========
     const STORAGE_KEY = "santa_gift_choice_v2";
 
-    // Coordenadas NORMALIZADAS (0..1) sobre la imagen de santa (ajustá solo esto si hace falta)
-    const HAND_L = { x: 0.28, y: 0.56 };
-    const HAND_R = { x: 0.72, y: 0.56 };
+    // ===== ANCLAJE A MANOS (para tu Santa actual) =====
+    // Ajustá solo X/Y si querés afinar 1cm arriba/abajo o izquierda/derecha
+    const HAND_L = { x: 0.255, y: 0.405 };
+    const HAND_R = { x: 0.745, y: 0.405 };
+
+    // Tamaño del regalo relativo al tamaño del Santa (estable en mobile/pc)
+    const GIFT_SCALE = 0.16;
 
     // Premios por regalo (ejemplo)
     const PRIZES = {
@@ -505,7 +509,6 @@
     async function ensureThree(){
       if(window.THREE) return true;
 
-      // Fallback por si el CDN falla (esto también evita “quedar clavado”)
       const cdns = [
         "https://unpkg.com/three@0.160.0/build/three.min.js",
         "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"
@@ -525,27 +528,22 @@
       setTarget(8);
       requestAnimationFrame(renderPct);
 
-      // “Checklist” real de carga (ya no hay 99% eterno)
       const total = 2; // santa + three
       let done = 0;
-      const step = () => { done++; setTarget(Math.round((done/total)*92)); }; // hasta 92, luego 100 al final
+      const step = () => { done++; setTarget(Math.round((done/total)*92)); };
 
-      // 1) Santa image
       hintEl.textContent = "Cargando Santa…";
       const santaRes = await ensureImageLoaded(santaImg, 6000);
       step();
 
-      // 2) Three.js
       const threeOk = await ensureThree();
       step();
 
-      // Si faltó santa o three, igual avanzamos, pero avisamos
       const warns = [];
       if(!santaRes.ok) warns.push("No se pudo cargar assets/santa.png (igual avanzo).");
       if(!threeOk) warns.push("No se pudo cargar Three.js (sin 3D no habrá regalos). Revisá conexión/CSP.");
       if(warns.length) showErr("⚠️ " + warns.join(" "));
 
-      // Final
       setTarget(100);
       finishedBoot = true;
       barFill.style.width = "100%";
@@ -562,7 +560,6 @@
       }, 260);
     }
 
-    // Arranque garantizado (no depende de que “algo” resuelva perfecto)
     boot();
 
     // ========= SNOW =========
@@ -626,9 +623,14 @@
       initThree();
       updateUIFromStorage();
       animate();
+
       window.addEventListener("resize", onResize);
-      window.addEventListener("orientationchange", () => setTimeout(onResize, 180));
+      window.addEventListener("orientationchange", () => setTimeout(onResize, 220));
       btnMyPrize.addEventListener("click", showStoredPrize);
+
+      // Asegura anclaje luego de que el browser termine de acomodar layout
+      setTimeout(onResize, 120);
+      setTimeout(onResize, 420);
     }
 
     function initThree(){
@@ -644,9 +646,13 @@
       renderer.domElement.style.touchAction = "manipulation";
       glHost.appendChild(renderer.domElement);
 
+      // Match look “3D cute”
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
+
       // Luces cálidas tipo “render cute”
       scene.add(new THREE.AmbientLight(0xffffff, 0.80));
-
       const hemi = new THREE.HemisphereLight(0xfff0df, 0x2a0a10, 0.55);
       scene.add(hemi);
 
@@ -675,40 +681,58 @@
       renderer.domElement.addEventListener("pointerdown", onPointerDown, { passive:false });
     }
 
+    // ====== FIX: resize estable (canvas y anclaje usando el MISMO rect del overlay) ======
     function onResize(){
-      const stageRect = document.getElementById("stage").getBoundingClientRect();
-      W = Math.max(1, Math.floor(stageRect.width));
-      H = Math.max(1, Math.floor(stageRect.height));
+      const rect = glHost.getBoundingClientRect();
+
+      W = Math.max(1, Math.floor(rect.width));
+      H = Math.max(1, Math.floor(rect.height));
 
       renderer.setSize(W, H, false);
 
-      camera = new THREE.OrthographicCamera(-W/2, W/2, H/2, -H/2, -2000, 2000);
-      camera.position.z = 900;
+      if(!camera){
+        camera = new THREE.OrthographicCamera(-W/2, W/2, H/2, -H/2, -2000, 2000);
+        camera.position.z = 900;
+      } else {
+        camera.left = -W/2;
+        camera.right = W/2;
+        camera.top = H/2;
+        camera.bottom = -H/2;
+        camera.updateProjectionMatrix();
+      }
 
-      positionGiftsToHands();
+      // Espera un frame: en mobile la img termina de acomodarse luego del resize
+      requestAnimationFrame(positionGiftsToHands);
     }
 
+    // ====== FIX: posición a manos usando imgRect + glHostRect (NO stageRect) ======
     function positionGiftsToHands(){
       if(!giftLeft || !giftRight) return;
 
-      const stageRect = document.getElementById("stage").getBoundingClientRect();
       const imgRect = santaImg.getBoundingClientRect();
+      const ovRect  = glHost.getBoundingClientRect();
 
-      function handToWorld(norm){
+      if(imgRect.width < 10 || imgRect.height < 10 || ovRect.width < 10 || ovRect.height < 10) return;
+
+      const toWorld = (norm) => {
         const px = imgRect.left + norm.x * imgRect.width;
         const py = imgRect.top  + norm.y * imgRect.height;
 
-        const cx = px - stageRect.left;
-        const cy = py - stageRect.top;
+        const lx = px - ovRect.left;
+        const ly = py - ovRect.top;
 
-        return { x: (cx - W/2), y: (H/2 - cy) };
-      }
+        const wx = lx - (W/2);
+        const wy = (H/2) - ly;
 
-      const L = handToWorld(HAND_L);
-      const R = handToWorld(HAND_R);
+        return { x: wx, y: wy };
+      };
 
-      const size = Math.min(W, H) * 0.14;
-      const z = 220;
+      const L = toWorld(HAND_L);
+      const R = toWorld(HAND_R);
+
+      // tamaño relativo al Santa (estable en PC/móvil)
+      const size = Math.min(imgRect.width, imgRect.height) * GIFT_SCALE;
+      const z = 300;
 
       giftLeft.group.position.set(L.x, L.y, z);
       giftRight.group.position.set(R.x, R.y, z);
@@ -716,15 +740,15 @@
       giftLeft.group.scale.setScalar(size);
       giftRight.group.scale.setScalar(size);
 
-      giftLeft.group.rotation.set(0.08, -0.25, 0.02);
-      giftRight.group.rotation.set(0.08,  0.25, -0.02);
+      // rotación fija (estática)
+      giftLeft.group.rotation.set(0.10, -0.30, 0.02);
+      giftRight.group.rotation.set(0.10,  0.30, -0.02);
     }
 
     function createGift({ primary, ribbon, id }){
       const group = new THREE.Group();
       group.userData.id = id;
 
-      // Material “cute” con brillo suave
       const matBox = new THREE.MeshPhysicalMaterial({
         color: primary,
         roughness: 0.35,
@@ -741,11 +765,9 @@
         clearcoatRoughness: 0.30
       });
 
-      // Caja
       const box = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.72, 1.0), matBox);
       group.add(box);
 
-      // Cintas
       const rib1 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.74, 1.02), matRibbon);
       rib1.position.y = 0.01;
       group.add(rib1);
@@ -754,7 +776,6 @@
       rib2.position.y = 0.20;
       group.add(rib2);
 
-      // Tapa con “bisagra”
       const lidPivot = new THREE.Group();
       lidPivot.position.set(0, 0.36, -0.52);
       group.add(lidPivot);
@@ -763,7 +784,6 @@
       lid.position.set(0, 0.10, 0.52);
       lidPivot.add(lid);
 
-      // Moño simple
       const bow1 = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.06, 10, 18, Math.PI), matRibbon);
       bow1.rotation.set(Math.PI/2, 0, 0);
       bow1.position.set(-0.16, 0.50, 0.12);
@@ -773,7 +793,6 @@
       bow2.position.x = 0.16;
       group.add(bow2);
 
-      // Hitbox invisible
       const hit = new THREE.Mesh(
         new THREE.BoxGeometry(1.35, 1.0, 1.35),
         new THREE.MeshBasicMaterial({ transparent:true, opacity:0 })
@@ -783,14 +802,13 @@
       hit.userData.parentGift = group;
       group.add(hit);
 
-      return { group, lidPivot, isOpen:false, busy:false, baseY: group.position.y };
+      return { group, lidPivot, isOpen:false, busy:false };
     }
 
     function onPointerDown(e){
       if(!canPick) return;
       e.preventDefault();
 
-      // si ya jugó, tocar muestra premio
       const stored = getStored();
       if(stored){
         showStoredPrize();
@@ -824,7 +842,6 @@
       const giftObj = (which === "left") ? giftLeft : giftRight;
 
       openGiftAnim(giftObj, () => {
-        // confetti navideño
         try{
           confetti({
             particleCount: 120,
@@ -883,24 +900,9 @@
       });
     }
 
+    // ===== FIX: regalos totalmente estáticos (sin bobbing / sin drift) =====
     function animate(t=performance.now()){
       requestAnimationFrame(animate);
-
-      // “idle” lindo mientras no eligen
-      const stored = getStored();
-      if(!stored){
-        const bob = Math.sin(t * 0.003) * 6; // px
-        if(giftLeft && !giftLeft.busy){
-          giftLeft.group.position.y += (bob - giftLeft.group.position.y * 0 + 0); // se recalcula por positionGiftsToHands en resize
-        }
-        if(giftRight && !giftRight.busy){
-          // no tocamos y absoluto acá para no pelear con resize;
-          // el efecto principal ya está en rotación suave:
-        }
-        if(giftLeft && !giftLeft.busy)  giftLeft.group.rotation.z = Math.sin(t*0.002) * 0.03;
-        if(giftRight && !giftRight.busy) giftRight.group.rotation.z = -Math.sin(t*0.002) * 0.03;
-      }
-
       if(anims.length) anims = anims.filter(fn => fn(t) !== false);
       renderer.render(scene, camera);
     }
@@ -920,7 +922,7 @@
       if(stored){
         statusPill.innerHTML = "✅ Ya elegiste tu regalo. <strong>¡Felices fiestas!</strong>";
         btnMyPrize.style.display = "inline-flex";
-        canPick = true; // permite tocar para ver premio
+        canPick = true;
       } else {
         statusPill.innerHTML = "🎁 Elegí <strong>1 regalo</strong> (solo una vez)";
         btnMyPrize.style.display = "none";
