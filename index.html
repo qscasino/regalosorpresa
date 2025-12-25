@@ -174,6 +174,22 @@
       padding:10px;
     }
 
+    /* Logo en pantalla de juego (arriba, pegado al borde) */
+    #gameLogo{
+      position:absolute;
+      top:10px;
+      left:50%;
+      transform: translateX(-50%);
+      width:min(160px, 42vw);
+      height:auto;
+      z-index:6;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));
+      pointer-events:none;
+      user-select:none;
+      -webkit-user-drag:none;
+    }
+    #gameLogo.hidden{ display:none; }
+
     #santaBg{
       height: min(92vh, 980px);
       width:auto;
@@ -193,110 +209,131 @@
       z-index:3;
     }
 
-    /* UI top */
-    .top-ui{
-      position:absolute;
-      top:14px; left:14px; right:14px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      z-index:4;
-      pointer-events:none;
-    }
-    .pill{
-      pointer-events:auto;
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      padding:10px 12px;
-      border:1px solid var(--stroke);
-      border-radius:999px;
-      background: linear-gradient(180deg, rgba(20,10,14,.45), rgba(0,0,0,.18));
-      backdrop-filter: blur(14px);
-      box-shadow: 0 14px 40px rgba(0,0,0,.25);
-      font-size:13px;
-      color:var(--muted);
-      max-width:min(640px, 92vw);
-    }
-    .pill strong{ color:#fff; font-weight:900; }
+    /* === Eliminamos los 2 carteles superiores (top-ui ya no existe) === */
 
+    /* Botón “Ver premio” abajo del Santa */
+    #bottomPrize{
+      position:absolute;
+      left:50%;
+      bottom:18px;
+      transform: translateX(-50%);
+      z-index:6;
+      pointer-events:auto;
+      display:none; /* aparece solo cuando ya eligió */
+    }
     .btn{
       pointer-events:auto;
       border:1px solid var(--stroke);
       background: linear-gradient(180deg, rgba(20,10,14,.45), rgba(0,0,0,.18));
       color:#fff;
-      padding:10px 12px;
+      padding:11px 14px;
       border-radius:999px;
       font-weight:900;
       letter-spacing:.2px;
       cursor:pointer;
       box-shadow: 0 14px 40px rgba(0,0,0,.25);
       transition: transform .12s ease, border-color .12s ease, filter .12s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
     }
     .btn:hover{ transform: translateY(-1px); border-color:rgba(255,255,255,.35); filter: brightness(1.05); }
     .btn:active{ transform: translateY(0px) scale(.99); }
 
-    /* ===== MODAL ===== */
+    /* ===== MODAL “casino” ===== */
     #modal{
       position:fixed; inset:0;
       display:none;
       align-items:center; justify-content:center;
       padding:16px;
       z-index:9998;
-      background: rgba(0,0,0,.58);
+      background: rgba(0,0,0,.62);
       backdrop-filter: blur(10px);
     }
     #modal.show{ display:flex; }
+
     .modal-card{
       width:min(560px, 92vw);
-      border-radius:var(--radius);
+      border-radius:26px;
       background:
-        radial-gradient(700px 380px at 50% 0%, rgba(255,211,106,.22), rgba(255,211,106,0) 65%),
-        linear-gradient(180deg, rgba(20,10,14,.60), rgba(0,0,0,.28));
-      border:1px solid var(--stroke);
-      box-shadow: var(--shadow);
-      padding:18px 16px 14px;
+        radial-gradient(800px 420px at 50% -10%, rgba(255,211,106,.30), rgba(255,211,106,0) 60%),
+        linear-gradient(180deg, rgba(18,8,12,.78), rgba(0,0,0,.32));
+      border:1px solid rgba(255,255,255,.16);
+      box-shadow: 0 28px 90px rgba(0,0,0,.55);
+      padding:16px 16px 14px;
+      position:relative;
+      overflow:hidden;
     }
+    .modal-card::before{
+      content:"";
+      position:absolute; inset:-40%;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,211,106,.20), rgba(255,211,106,0) 55%),
+        radial-gradient(circle at 80% 30%, rgba(255,90,106,.18), rgba(255,90,106,0) 55%);
+      transform: rotate(8deg);
+      pointer-events:none;
+    }
+
     .modal-title{
+      position:relative;
       display:flex; align-items:center; justify-content:space-between; gap:10px;
-      margin-bottom:8px;
+      margin-bottom:10px;
     }
     .modal-title h2{
       margin:0;
       font-size:18px;
       letter-spacing:.2px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .badge{
+      font-size:12px;
+      font-weight:900;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(255,211,106,.18);
+      border:1px solid rgba(255,211,106,.25);
+      color:#ffe8b3;
     }
     .x{
-      border:1px solid var(--stroke);
-      background:transparent;
+      position:relative;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.25);
       color:#fff;
-      width:36px; height:36px;
-      border-radius:12px;
+      width:38px; height:38px;
+      border-radius:14px;
       cursor:pointer;
       font-size:18px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.25);
     }
+
     .prize{
-      margin-top:8px;
-      padding:12px;
-      border:1px solid rgba(255,255,255,.16);
-      border-radius:16px;
-      background: rgba(0,0,0,.18);
+      position:relative;
+      margin-top:6px;
+      padding:14px 14px;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(0,0,0,.26), rgba(0,0,0,.14));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
     }
     .prize .big{
-      font-size:18px;
-      font-weight:900;
+      font-size:19px;
+      font-weight:950;
       color:#fff;
       white-space:pre-wrap;
+      text-shadow: 0 10px 18px rgba(0,0,0,.35);
     }
     .prize .sub{
-      margin-top:6px;
+      margin-top:8px;
       font-size:13px;
-      color:var(--muted);
+      color:rgba(255,255,255,.80);
       line-height:1.35;
       white-space:pre-wrap;
     }
+
     .modal-actions{
+      position:relative;
       margin-top:12px;
       display:flex;
       gap:10px;
@@ -307,17 +344,19 @@
       background: linear-gradient(90deg, #ffd36a, #ffb84d, #ff5b6a);
       color:#2a0a10;
       border-color:transparent;
+      box-shadow: 0 16px 40px rgba(255,120,110,.18);
     }
     .btn-ghost{
-      background:transparent;
-      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.18);
       color:#fff;
     }
 
     @media (max-width: 420px){
-      .pill{ font-size:12px; padding:9px 10px; }
-      .btn{ padding:9px 10px; }
+      #gameLogo{ top:8px; width:min(150px, 46vw); }
       #santaBg{ height: 90vh; }
+      #bottomPrize{ bottom:14px; }
+      .btn{ padding:10px 12px; }
     }
 
     @media (prefers-reduced-motion: reduce){
@@ -386,12 +425,16 @@
 
     <div id="stage">
       <div id="santaWrap">
+        <!-- Logo en juego -->
+        <img id="gameLogo" src="assets/logo.png" alt="Logo" class="hidden"
+             onerror="this.classList.add('hidden')">
+
         <img id="santaBg" src="assets/santa.png" alt="Santa" draggable="false" />
         <div id="gl"></div>
 
-        <div class="top-ui">
-          <div class="pill" id="statusPill">🎁 Elegí <strong>2 regalos</strong> (uno por mano)</div>
-          <button class="btn" id="btnMyPrize" style="display:none;">Ver mis premios</button>
+        <!-- Botón abajo (solo si ya jugó) -->
+        <div id="bottomPrize">
+          <button class="btn" id="btnSeePrize">🎁 Ver premio</button>
         </div>
       </div>
     </div>
@@ -401,7 +444,7 @@
   <div id="modal" aria-hidden="true">
     <div class="modal-card">
       <div class="modal-title">
-        <h2 id="modalTitle">¡Felicidades! 🎄</h2>
+        <h2 id="modalTitle">¡Felicidades! <span class="badge">Premio</span></h2>
         <button class="x" id="modalClose" aria-label="Cerrar">✕</button>
       </div>
 
@@ -417,15 +460,17 @@
     </div>
   </div>
 
+  <!-- Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <script>
     // =========================
-    // 1) CONFIG “MEDIA”: PC vs CELU
+    // CONFIG
     // =========================
-    const STORAGE_KEY = "santa_gifts_two_v1";
+    const STORAGE_KEY = "santa_gift_one_v1";
 
-    // 👉 Ajustá ACÁ las manos para PC / CELU (0..1 sobre la imagen)
+    // 👉 Tus posiciones quedan iguales (no las toco).
+    // Importante: el usuario SOLO puede elegir 1 regalo (izq o der).
     const HANDS = {
       desktop: {
         left:  { x: 0.10, y: 0.35 },
@@ -437,20 +482,55 @@
       }
     };
 
-    // 👉 Ajustá tamaño por dispositivo (relativo al tamaño del Santa)
     const SCALE = {
       desktop: 0.16,
       mobile:  0.18
     };
 
-    // Premios (ejemplo)
     const PRIZES = {
       left:  { title: "🎁 Bono 200% en tu próxima carga", sub: "Se acredita en tu próxima carga. Consultá condiciones con tu asesor." },
       right: { title: "🎁 3000 fichas gratis",            sub: "Se activa con una carga mínima de 5000. Consultá condiciones con tu asesor." }
     };
 
     // =========================
-    // 2) PRELOADER (99% fix)
+    // AUDIO (assets/)
+    // =========================
+    // Poné estos archivos en assets/:
+    //  - assets/bg.mp3   (música de fondo)
+    //  - assets/popup.mp3 (sonido popup)
+    const bgAudio = new Audio("assets/bg.mp3");
+    bgAudio.loop = true;
+    bgAudio.volume = 0.35;
+
+    const popupAudio = new Audio("assets/popup.mp3");
+    popupAudio.loop = false;
+    popupAudio.volume = 0.70;
+
+    let audioStarted = false;
+    function startAudioOnce(){
+      if(audioStarted) return;
+      audioStarted = true;
+
+      // intento inmediato
+      bgAudio.play().catch(() => {
+        // por si el primer intento falla, reintenta en el próximo gesto
+        audioStarted = false;
+      });
+    }
+
+    // Se inicia con el primer toque/click en la página
+    window.addEventListener("pointerdown", startAudioOnce, { passive:true });
+    window.addEventListener("keydown", startAudioOnce);
+
+    function playPopup(){
+      try{
+        popupAudio.currentTime = 0;
+        popupAudio.play().catch(()=>{});
+      } catch {}
+    }
+
+    // =========================
+    // PRELOADER 0 → 100 (real + mínimo visible)
     // =========================
     const preloader = document.getElementById("preloader");
     const barFill   = document.getElementById("barFill");
@@ -465,19 +545,18 @@
 
     function setTarget(p){ targetPct = Math.max(targetPct, Math.min(100, p)); }
     function renderPct(){
-      visualPct += (targetPct - visualPct) * 0.14;
+      visualPct += (targetPct - visualPct) * 0.12;
       const v = Math.floor(visualPct);
       barFill.style.width = v + "%";
       pctEl.textContent = v + "%";
       if(!finishedBoot) requestAnimationFrame(renderPct);
     }
-
     function showErr(msg){
       errBox.textContent = msg;
       errBox.classList.add("show");
     }
 
-    function ensureImageLoaded(img, timeoutMs=6000){
+    function ensureImageLoaded(img, timeoutMs=6500){
       return new Promise((resolve) => {
         if(!img || !img.src) return resolve(false);
         if(img.complete) return resolve(img.naturalWidth > 0);
@@ -501,7 +580,7 @@
       });
     }
 
-    function loadScript(src, timeoutMs=7000){
+    function loadScript(src, timeoutMs=8000){
       return new Promise((resolve, reject) => {
         const s = document.createElement("script");
         s.src = src;
@@ -542,48 +621,76 @@
       for(const url of cdns){
         try{
           hintEl.textContent = "Cargando motor 3D…";
-          await loadScript(url, 7000);
+          await loadScript(url, 8000);
           if(window.THREE) return true;
         } catch(e){}
       }
       return false;
     }
 
+    function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+
     async function boot(){
-      setTarget(8);
+      setTarget(0);
       requestAnimationFrame(renderPct);
 
+      // Mínimo para que “se vea” el 0→100 (evita saltar a 14% y listo).
+      const MIN_PRELOAD_MS = 1200;
+      const t0 = performance.now();
+
+      // 3 tareas reales (en vez de 2) para que el % sea más “natural”
+      const tasks = 3;
       let done = 0;
-      const total = 2;
-      const step = () => { done++; setTarget(Math.round((done/total)*92)); };
+      const step = (toPct) => {
+        done++;
+        // mapa al 0..92% con steps visibles
+        const pct = Math.min(92, Math.round((done/tasks) * 92));
+        setTarget(Math.max(pct, toPct ?? pct));
+      };
 
       hintEl.textContent = "Cargando Santa…";
       const okSanta = await ensureImageLoaded(santaImg, 6500);
-      step();
+      step(28);
 
+      hintEl.textContent = "Cargando motor 3D…";
       const okThree = await ensureThree();
-      step();
+      step(66);
+
+      hintEl.textContent = "Preparando escena…";
+      // pequeño “warm-up” para que se vea progreso (sin bloquear)
+      await delay(220);
+      step(92);
 
       const warns = [];
       if(!okSanta) warns.push("No se pudo cargar assets/santa.png.");
       if(!okThree) warns.push("No se pudo cargar Three.js (revisá conexión/CSP).");
       if(warns.length) showErr("⚠️ " + warns.join(" "));
 
+      // Espera mínimo visible
+      const elapsed = performance.now() - t0;
+      if(elapsed < MIN_PRELOAD_MS) await delay(MIN_PRELOAD_MS - elapsed);
+
+      // Final 100% (y deja respirar 1 frame)
       setTarget(100);
+      await delay(180);
       finishedBoot = true;
       barFill.style.width = "100%";
       pctEl.textContent = "100%";
 
+      // Mostrar logo en juego
+      const gameLogo = document.getElementById("gameLogo");
+      gameLogo.classList.remove("hidden");
+
       setTimeout(() => {
         preloader.style.display = "none";
         if(okThree) start();
-      }, 220);
+      }, 200);
     }
 
     boot();
 
     // =========================
-    // 3) Snow
+    // Snow
     // =========================
     function spawnSnow(){
       const layer = document.getElementById("snowLayer");
@@ -605,7 +712,7 @@
     spawnSnow();
 
     // =========================
-    // 4) Modal
+    // Modal
     // =========================
     const modal = document.getElementById("modal");
     const modalClose = document.getElementById("modalClose");
@@ -613,14 +720,15 @@
     const btnReset = document.getElementById("btnReset");
     const prizeBig = document.getElementById("prizeBig");
     const prizeSub = document.getElementById("prizeSub");
-    const btnMyPrize = document.getElementById("btnMyPrize");
-    const statusPill = document.getElementById("statusPill");
+    const btnSeePrize = document.getElementById("btnSeePrize");
+    const bottomPrize = document.getElementById("bottomPrize");
 
     function openModal(title, sub){
       prizeBig.textContent = title;
       prizeSub.textContent = sub;
       modal.classList.add("show");
       modal.setAttribute("aria-hidden","false");
+      playPopup();
     }
     function closeModal(){
       modal.classList.remove("show");
@@ -636,67 +744,36 @@
     };
 
     // =========================
-    // 5) Storage (2 picks)
+    // Storage (SOLO 1 PREMIO)
     // =========================
     function getStored(){
       try{
         const raw = localStorage.getItem(STORAGE_KEY);
-        if(!raw) return { left:null, right:null };
-        const obj = JSON.parse(raw);
-        return {
-          left: obj.left || null,
-          right: obj.right || null
-        };
-      } catch {
-        return { left:null, right:null };
-      }
+        if(!raw) return null; // { which, prize }
+        return JSON.parse(raw);
+      } catch { return null; }
     }
-    function setStored(next){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    function setStored(obj){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
     }
-    function pickedCount(){
-      const s = getStored();
-      return (s.left ? 1 : 0) + (s.right ? 1 : 0);
+    function alreadyPlayed(){
+      return !!getStored();
     }
-
-    function updateUI(){
-      const s = getStored();
-      const count = pickedCount();
-
-      if(count === 0){
-        statusPill.innerHTML = "🎁 Elegí <strong>2 regalos</strong> (uno por mano)";
-        btnMyPrize.style.display = "none";
-      } else if(count === 1){
-        statusPill.innerHTML = "🎁 Elegiste <strong>1/2</strong>. Te queda <strong>1 regalo</strong>.";
-        btnMyPrize.style.display = "inline-flex";
+    function syncBottomButton(){
+      if(alreadyPlayed()){
+        bottomPrize.style.display = "block";
       } else {
-        statusPill.innerHTML = "✅ Ya elegiste tus <strong>2 regalos</strong>. <strong>¡Felices fiestas!</strong>";
-        btnMyPrize.style.display = "inline-flex";
+        bottomPrize.style.display = "none";
       }
     }
-
-    function showStoredPrizes(){
+    btnSeePrize.addEventListener("click", () => {
       const s = getStored();
-      const lines = [];
-      const subs = [];
-
-      if(s.left){
-        lines.push("🟥 Mano izquierda: " + s.left.prize.title);
-        subs.push(s.left.prize.sub);
-      }
-      if(s.right){
-        lines.push("🟩 Mano derecha: " + s.right.prize.title);
-        subs.push(s.right.prize.sub);
-      }
-      if(!lines.length) return;
-
-      openModal(lines.join("\n"), subs.join("\n\n"));
-    }
-
-    btnMyPrize.addEventListener("click", showStoredPrizes);
+      if(!s) return;
+      openModal(s.prize.title, s.prize.sub);
+    });
 
     // =========================
-    // 6) THREE + Anclaje ultra estable
+    // THREE + Anclaje estable
     // =========================
     let scene, camera, renderer, raycaster, mouse;
     let giftLeft, giftRight;
@@ -718,13 +795,11 @@
       return isMobile() ? SCALE.mobile : SCALE.desktop;
     }
 
-    // Scheduler para recalcular varias veces (soluciona “cambio de pantalla”)
-    let layoutRAF = 0;
     let layoutPending = false;
     function scheduleLayout(){
       if(layoutPending) return;
       layoutPending = true;
-      layoutRAF = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
         layoutPending = false;
         onResize();
       });
@@ -732,7 +807,6 @@
 
     function start(){
       initThree();
-      updateUI();
 
       // listeners robustos
       window.addEventListener("resize", scheduleLayout);
@@ -740,19 +814,19 @@
       window.visualViewport?.addEventListener("resize", scheduleLayout);
       window.visualViewport?.addEventListener("scroll", scheduleLayout);
 
-      // Observa cambios reales de tamaño (PC y móvil)
       try{
         const ro = new ResizeObserver(() => scheduleLayout());
         ro.observe(glHost);
         ro.observe(santaImg);
       } catch {}
 
-      // recalibra varias veces al inicio (por el “layout settle” del móvil)
+      // settle móvil
       setTimeout(scheduleLayout, 80);
       setTimeout(scheduleLayout, 220);
       setTimeout(scheduleLayout, 520);
       setTimeout(scheduleLayout, 900);
 
+      syncBottomButton();
       animate();
     }
 
@@ -769,7 +843,6 @@
       renderer.domElement.style.touchAction = "manipulation";
       glHost.appendChild(renderer.domElement);
 
-      // Match look cute
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.05;
@@ -829,7 +902,6 @@
         camera.updateProjectionMatrix();
       }
 
-      // recalcula manos 1 frame después (por layout de img)
       requestAnimationFrame(positionGiftsToHands);
     }
 
@@ -942,7 +1014,9 @@
       e.preventDefault();
       if(busyPick) return;
 
-      // si tocan donde no hay regalo, no hace nada
+      // Si ya jugó: cualquier toque sobre un regalo muestra el premio guardado
+      const stored = getStored();
+
       const rect = renderer.domElement.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -955,21 +1029,19 @@
       const hit = hits.find(h => h.object?.userData?.isHit);
       if(!hit) return;
 
+      if(stored){
+        openModal(stored.prize.title, stored.prize.sub);
+        return;
+      }
+
       const giftGroup = hit.object.userData.parentGift;
       const which = giftGroup.userData.id; // "left" | "right"
       pickGift(which);
     }
 
     function pickGift(which){
-      const stored = getStored();
+      if(alreadyPlayed()) return;
 
-      // Si esa mano ya fue elegida => mostrar premio de esa mano
-      if(stored[which]){
-        openModal(stored[which].prize.title, stored[which].prize.sub);
-        return;
-      }
-
-      // Si no fue elegida => abrir y guardar
       const prize = PRIZES[which];
       if(!prize) return;
 
@@ -981,11 +1053,8 @@
           confetti({ particleCount: 120, spread: 70, origin: { y: 0.55 }, scalar: 0.9, ticks: 180 });
         } catch {}
 
-        const next = getStored();
-        next[which] = { prize };
-        setStored(next);
-
-        updateUI();
+        setStored({ which, prize });
+        syncBottomButton();
         openModal(prize.title, prize.sub);
 
         busyPick = false;
