@@ -5,12 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Regalos de Navidad</title>
 
-  <!-- Tip: poné tu santa estilo “3D cute” en: assets/santa.png -->
-  <!-- Tip: tu logo (opcional) en: assets/logo.png -->
-
   <style>
     :root{
-      /* Paleta cálida tipo “render 3D cute” (bokeh + dorados) */
       --bgA:#ffb39a;
       --bgB:#ff6c73;
       --bgC:#7c1b2c;
@@ -43,7 +39,6 @@
         radial-gradient(1200px 900px at 50% 0%, var(--bgA) 0%, var(--bgB) 40%, var(--bgC) 100%);
     }
 
-    /* Bokeh suave */
     body::before{
       content:"";
       position:fixed; inset:-20%;
@@ -157,7 +152,6 @@
       padding:12px;
     }
 
-    /* snow */
     #snowLayer{ position:absolute; inset:0; pointer-events:none; z-index:2; }
 
     #stage{
@@ -223,7 +217,7 @@
       box-shadow: 0 14px 40px rgba(0,0,0,.25);
       font-size:13px;
       color:var(--muted);
-      max-width:min(560px, 92vw);
+      max-width:min(640px, 92vw);
     }
     .pill strong{ color:#fff; font-weight:900; }
 
@@ -293,12 +287,14 @@
       font-size:18px;
       font-weight:900;
       color:#fff;
+      white-space:pre-wrap;
     }
     .prize .sub{
       margin-top:6px;
       font-size:13px;
       color:var(--muted);
       line-height:1.35;
+      white-space:pre-wrap;
     }
     .modal-actions{
       margin-top:12px;
@@ -318,20 +314,17 @@
       color:#fff;
     }
 
-    /* Mobile tweaks */
     @media (max-width: 420px){
       .pill{ font-size:12px; padding:9px 10px; }
       .btn{ padding:9px 10px; }
       #santaBg{ height: 90vh; }
     }
 
-    /* reduce motion */
     @media (prefers-reduced-motion: reduce){
       .bar > div{ transition:none; }
       .btn{ transition:none; }
     }
 
-    /* snow flakes */
     .flake{
       position:absolute;
       top:-10px;
@@ -344,6 +337,28 @@
     }
     @keyframes fall{
       to{ transform: translateY(110vh); }
+    }
+
+    /* Debug markers */
+    .dbg-dot{
+      position:fixed;
+      width:14px; height:14px;
+      border-radius:999px;
+      background: rgba(255,255,255,.95);
+      box-shadow: 0 0 0 3px rgba(255,0,90,.35), 0 10px 22px rgba(0,0,0,.35);
+      transform: translate(-50%, -50%);
+      z-index: 9997;
+      pointer-events:none;
+    }
+    .dbg-dot::after{
+      content: attr(data-label);
+      position:absolute;
+      left:50%; top:-18px;
+      transform: translateX(-50%);
+      font-size:12px;
+      font-weight:900;
+      color:#fff;
+      text-shadow: 0 6px 14px rgba(0,0,0,.55);
     }
   </style>
 </head>
@@ -375,8 +390,8 @@
         <div id="gl"></div>
 
         <div class="top-ui">
-          <div class="pill" id="statusPill">🎁 Elegí <strong>1 regalo</strong> (solo una vez)</div>
-          <button class="btn" id="btnMyPrize" style="display:none;">Ver mi premio</button>
+          <div class="pill" id="statusPill">🎁 Elegí <strong>2 regalos</strong> (uno por mano)</div>
+          <button class="btn" id="btnMyPrize" style="display:none;">Ver mis premios</button>
         </div>
       </div>
     </div>
@@ -402,34 +417,46 @@
     </div>
   </div>
 
-  <!-- Confetti (para “apertura” del regalo) -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <script>
-    // ========= CONFIG =========
-    const STORAGE_KEY = "santa_gift_choice_v2";
+    // =========================
+    // 1) CONFIG “MEDIA”: PC vs CELU
+    // =========================
+    const STORAGE_KEY = "santa_gifts_two_v1";
 
-    // ===== ANCLAJE A MANOS (para tu Santa actual) =====
-    // Ajustá solo X/Y si querés afinar 1cm arriba/abajo o izquierda/derecha
-    const HAND_L = { x: 0.255, y: 0.405 };
-    const HAND_R = { x: 0.745, y: 0.405 };
+    // 👉 Ajustá ACÁ las manos para PC / CELU (0..1 sobre la imagen)
+    const HANDS = {
+      desktop: {
+        left:  { x: 0.30, y: 0.50 },
+        right: { x: 0.70, y: 0.50 }
+      },
+      mobile: {
+        left:  { x: 0.30, y: 0.49 },
+        right: { x: 0.70, y: 0.49 }
+      }
+    };
 
-    // Tamaño del regalo relativo al tamaño del Santa (estable en mobile/pc)
-    const GIFT_SCALE = 0.16;
+    // 👉 Ajustá tamaño por dispositivo (relativo al tamaño del Santa)
+    const SCALE = {
+      desktop: 0.16,
+      mobile:  0.18
+    };
 
-    // Premios por regalo (ejemplo)
+    // Premios (ejemplo)
     const PRIZES = {
       left:  { title: "🎁 Bono 200% en tu próxima carga", sub: "Se acredita en tu próxima carga. Consultá condiciones con tu asesor." },
       right: { title: "🎁 3000 fichas gratis",            sub: "Se activa con una carga mínima de 5000. Consultá condiciones con tu asesor." }
     };
 
-    // ========= PRELOADER (ARREGLA 99% CLAVADO) =========
+    // =========================
+    // 2) PRELOADER (99% fix)
+    // =========================
     const preloader = document.getElementById("preloader");
     const barFill   = document.getElementById("barFill");
     const pctEl     = document.getElementById("pct");
     const hintEl    = document.getElementById("hint");
     const errBox    = document.getElementById("errBox");
-
     const santaImg  = document.getElementById("santaBg");
 
     let targetPct = 0;
@@ -450,24 +477,24 @@
       errBox.classList.add("show");
     }
 
-    function ensureImageLoaded(img, timeoutMs=5500){
+    function ensureImageLoaded(img, timeoutMs=6000){
       return new Promise((resolve) => {
-        if(!img || !img.src) return resolve({ ok:false, why:"img-missing" });
-        if(img.complete) return resolve({ ok: img.naturalWidth > 0, why: img.naturalWidth > 0 ? "cache" : "broken" });
+        if(!img || !img.src) return resolve(false);
+        if(img.complete) return resolve(img.naturalWidth > 0);
 
         let done = false;
-        const t = setTimeout(() => finish(false, "timeout"), timeoutMs);
+        const t = setTimeout(() => finish(false), timeoutMs);
 
-        function finish(ok, why){
+        function finish(ok){
           if(done) return;
           done = true;
           clearTimeout(t);
           img.removeEventListener("load", onLoad);
           img.removeEventListener("error", onErr);
-          resolve({ ok, why });
+          resolve(ok);
         }
-        function onLoad(){ finish(true, "load"); }
-        function onErr(){ finish(false, "error"); }
+        function onLoad(){ finish(true); }
+        function onErr(){ finish(false); }
 
         img.addEventListener("load", onLoad, { once:true });
         img.addEventListener("error", onErr, { once:true });
@@ -508,18 +535,16 @@
 
     async function ensureThree(){
       if(window.THREE) return true;
-
       const cdns = [
         "https://unpkg.com/three@0.160.0/build/three.min.js",
         "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"
       ];
-
       for(const url of cdns){
         try{
           hintEl.textContent = "Cargando motor 3D…";
           await loadScript(url, 7000);
           if(window.THREE) return true;
-        } catch(e){ /* intenta siguiente */ }
+        } catch(e){}
       }
       return false;
     }
@@ -528,20 +553,20 @@
       setTarget(8);
       requestAnimationFrame(renderPct);
 
-      const total = 2; // santa + three
       let done = 0;
+      const total = 2;
       const step = () => { done++; setTarget(Math.round((done/total)*92)); };
 
       hintEl.textContent = "Cargando Santa…";
-      const santaRes = await ensureImageLoaded(santaImg, 6000);
+      const okSanta = await ensureImageLoaded(santaImg, 6500);
       step();
 
-      const threeOk = await ensureThree();
+      const okThree = await ensureThree();
       step();
 
       const warns = [];
-      if(!santaRes.ok) warns.push("No se pudo cargar assets/santa.png (igual avanzo).");
-      if(!threeOk) warns.push("No se pudo cargar Three.js (sin 3D no habrá regalos). Revisá conexión/CSP.");
+      if(!okSanta) warns.push("No se pudo cargar assets/santa.png.");
+      if(!okThree) warns.push("No se pudo cargar Three.js (revisá conexión/CSP).");
       if(warns.length) showErr("⚠️ " + warns.join(" "));
 
       setTarget(100);
@@ -551,18 +576,15 @@
 
       setTimeout(() => {
         preloader.style.display = "none";
-        try{
-          if(threeOk) start();
-        } catch(e){
-          showErr("Error al iniciar 3D: " + (e?.message || e));
-          preloader.style.display = "flex";
-        }
-      }, 260);
+        if(okThree) start();
+      }, 220);
     }
 
     boot();
 
-    // ========= SNOW =========
+    // =========================
+    // 3) Snow
+    // =========================
     function spawnSnow(){
       const layer = document.getElementById("snowLayer");
       const count = 38;
@@ -582,7 +604,9 @@
     }
     spawnSnow();
 
-    // ========= MODAL =========
+    // =========================
+    // 4) Modal
+    // =========================
     const modal = document.getElementById("modal");
     const modalClose = document.getElementById("modalClose");
     const btnOk = document.getElementById("btnOk");
@@ -611,26 +635,125 @@
       location.reload();
     };
 
-    // ========= THREE =========
+    // =========================
+    // 5) Storage (2 picks)
+    // =========================
+    function getStored(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return { left:null, right:null };
+        const obj = JSON.parse(raw);
+        return {
+          left: obj.left || null,
+          right: obj.right || null
+        };
+      } catch {
+        return { left:null, right:null };
+      }
+    }
+    function setStored(next){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    }
+    function pickedCount(){
+      const s = getStored();
+      return (s.left ? 1 : 0) + (s.right ? 1 : 0);
+    }
+
+    function updateUI(){
+      const s = getStored();
+      const count = pickedCount();
+
+      if(count === 0){
+        statusPill.innerHTML = "🎁 Elegí <strong>2 regalos</strong> (uno por mano)";
+        btnMyPrize.style.display = "none";
+      } else if(count === 1){
+        statusPill.innerHTML = "🎁 Elegiste <strong>1/2</strong>. Te queda <strong>1 regalo</strong>.";
+        btnMyPrize.style.display = "inline-flex";
+      } else {
+        statusPill.innerHTML = "✅ Ya elegiste tus <strong>2 regalos</strong>. <strong>¡Felices fiestas!</strong>";
+        btnMyPrize.style.display = "inline-flex";
+      }
+    }
+
+    function showStoredPrizes(){
+      const s = getStored();
+      const lines = [];
+      const subs = [];
+
+      if(s.left){
+        lines.push("🟥 Mano izquierda: " + s.left.prize.title);
+        subs.push(s.left.prize.sub);
+      }
+      if(s.right){
+        lines.push("🟩 Mano derecha: " + s.right.prize.title);
+        subs.push(s.right.prize.sub);
+      }
+      if(!lines.length) return;
+
+      openModal(lines.join("\n"), subs.join("\n\n"));
+    }
+
+    btnMyPrize.addEventListener("click", showStoredPrizes);
+
+    // =========================
+    // 6) THREE + Anclaje ultra estable
+    // =========================
     let scene, camera, renderer, raycaster, mouse;
     let giftLeft, giftRight;
     let W=0, H=0;
-    let canPick = true;
     let anims = [];
+    let busyPick = false;
+
     const glHost = document.getElementById("gl");
+    const isDebug = new URLSearchParams(location.search).get("debug") === "1";
+    let dbgL = null, dbgR = null;
+
+    function isMobile(){
+      return window.matchMedia && window.matchMedia("(max-width: 520px)").matches;
+    }
+    function handsForViewport(){
+      return isMobile() ? HANDS.mobile : HANDS.desktop;
+    }
+    function scaleForViewport(){
+      return isMobile() ? SCALE.mobile : SCALE.desktop;
+    }
+
+    // Scheduler para recalcular varias veces (soluciona “cambio de pantalla”)
+    let layoutRAF = 0;
+    let layoutPending = false;
+    function scheduleLayout(){
+      if(layoutPending) return;
+      layoutPending = true;
+      layoutRAF = requestAnimationFrame(() => {
+        layoutPending = false;
+        onResize();
+      });
+    }
 
     function start(){
       initThree();
-      updateUIFromStorage();
+      updateUI();
+
+      // listeners robustos
+      window.addEventListener("resize", scheduleLayout);
+      window.addEventListener("orientationchange", () => setTimeout(scheduleLayout, 160));
+      window.visualViewport?.addEventListener("resize", scheduleLayout);
+      window.visualViewport?.addEventListener("scroll", scheduleLayout);
+
+      // Observa cambios reales de tamaño (PC y móvil)
+      try{
+        const ro = new ResizeObserver(() => scheduleLayout());
+        ro.observe(glHost);
+        ro.observe(santaImg);
+      } catch {}
+
+      // recalibra varias veces al inicio (por el “layout settle” del móvil)
+      setTimeout(scheduleLayout, 80);
+      setTimeout(scheduleLayout, 220);
+      setTimeout(scheduleLayout, 520);
+      setTimeout(scheduleLayout, 900);
+
       animate();
-
-      window.addEventListener("resize", onResize);
-      window.addEventListener("orientationchange", () => setTimeout(onResize, 220));
-      btnMyPrize.addEventListener("click", showStoredPrize);
-
-      // Asegura anclaje luego de que el browser termine de acomodar layout
-      setTimeout(onResize, 120);
-      setTimeout(onResize, 420);
     }
 
     function initThree(){
@@ -646,15 +769,13 @@
       renderer.domElement.style.touchAction = "manipulation";
       glHost.appendChild(renderer.domElement);
 
-      // Match look “3D cute”
+      // Match look cute
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.05;
 
-      // Luces cálidas tipo “render cute”
       scene.add(new THREE.AmbientLight(0xffffff, 0.80));
-      const hemi = new THREE.HemisphereLight(0xfff0df, 0x2a0a10, 0.55);
-      scene.add(hemi);
+      scene.add(new THREE.HemisphereLight(0xfff0df, 0x2a0a10, 0.55));
 
       const key = new THREE.DirectionalLight(0xffffff, 0.85);
       key.position.set(300, 520, 620);
@@ -668,23 +789,30 @@
       rim.position.set(-420, 240, 420);
       scene.add(rim);
 
-      onResize();
+      giftLeft  = createGift({ primary:0xff5b6a, ribbon:0xffd36a, id:"left"  });
+      giftRight = createGift({ primary:0x2fd6a0, ribbon:0xffffff, id:"right" });
 
-      // regalos (uno por mano)
-      giftLeft  = createGift({ primary:0xff5b6a, ribbon:0xffd36a, id:"left"  }); // rojo + dorado
-      giftRight = createGift({ primary:0x2fd6a0, ribbon:0xffffff, id:"right" }); // verde + blanco
       scene.add(giftLeft.group, giftRight.group);
 
-      positionGiftsToHands();
+      scheduleLayout();
 
-      // interacción
       renderer.domElement.addEventListener("pointerdown", onPointerDown, { passive:false });
+
+      if(isDebug){
+        dbgL = document.createElement("div");
+        dbgL.className = "dbg-dot";
+        dbgL.dataset.label = "L";
+        document.body.appendChild(dbgL);
+
+        dbgR = document.createElement("div");
+        dbgR.className = "dbg-dot";
+        dbgR.dataset.label = "R";
+        document.body.appendChild(dbgR);
+      }
     }
 
-    // ====== FIX: resize estable (canvas y anclaje usando el MISMO rect del overlay) ======
     function onResize(){
       const rect = glHost.getBoundingClientRect();
-
       W = Math.max(1, Math.floor(rect.width));
       H = Math.max(1, Math.floor(rect.height));
 
@@ -701,18 +829,19 @@
         camera.updateProjectionMatrix();
       }
 
-      // Espera un frame: en mobile la img termina de acomodarse luego del resize
+      // recalcula manos 1 frame después (por layout de img)
       requestAnimationFrame(positionGiftsToHands);
     }
 
-    // ====== FIX: posición a manos usando imgRect + glHostRect (NO stageRect) ======
     function positionGiftsToHands(){
       if(!giftLeft || !giftRight) return;
 
       const imgRect = santaImg.getBoundingClientRect();
       const ovRect  = glHost.getBoundingClientRect();
-
       if(imgRect.width < 10 || imgRect.height < 10 || ovRect.width < 10 || ovRect.height < 10) return;
+
+      const hands = handsForViewport();
+      const giftScale = scaleForViewport();
 
       const toWorld = (norm) => {
         const px = imgRect.left + norm.x * imgRect.width;
@@ -723,16 +852,14 @@
 
         const wx = lx - (W/2);
         const wy = (H/2) - ly;
-
-        return { x: wx, y: wy };
+        return { x: wx, y: wy, px, py };
       };
 
-      const L = toWorld(HAND_L);
-      const R = toWorld(HAND_R);
+      const L = toWorld(hands.left);
+      const R = toWorld(hands.right);
 
-      // tamaño relativo al Santa (estable en PC/móvil)
-      const size = Math.min(imgRect.width, imgRect.height) * GIFT_SCALE;
-      const z = 300;
+      const size = Math.min(imgRect.width, imgRect.height) * giftScale;
+      const z = 320;
 
       giftLeft.group.position.set(L.x, L.y, z);
       giftRight.group.position.set(R.x, R.y, z);
@@ -740,9 +867,15 @@
       giftLeft.group.scale.setScalar(size);
       giftRight.group.scale.setScalar(size);
 
-      // rotación fija (estática)
       giftLeft.group.rotation.set(0.10, -0.30, 0.02);
       giftRight.group.rotation.set(0.10,  0.30, -0.02);
+
+      if(isDebug && dbgL && dbgR){
+        dbgL.style.left = L.px + "px";
+        dbgL.style.top  = L.py + "px";
+        dbgR.style.left = R.px + "px";
+        dbgR.style.top  = R.py + "px";
+      }
     }
 
     function createGift({ primary, ribbon, id }){
@@ -802,19 +935,14 @@
       hit.userData.parentGift = group;
       group.add(hit);
 
-      return { group, lidPivot, isOpen:false, busy:false };
+      return { group, lidPivot, busy:false };
     }
 
     function onPointerDown(e){
-      if(!canPick) return;
       e.preventDefault();
+      if(busyPick) return;
 
-      const stored = getStored();
-      if(stored){
-        showStoredPrize();
-        return;
-      }
-
+      // si tocan donde no hay regalo, no hace nada
       const rect = renderer.domElement.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -828,33 +956,39 @@
       if(!hit) return;
 
       const giftGroup = hit.object.userData.parentGift;
-      const which = giftGroup.userData.id;
+      const which = giftGroup.userData.id; // "left" | "right"
       pickGift(which);
     }
 
     function pickGift(which){
+      const stored = getStored();
+
+      // Si esa mano ya fue elegida => mostrar premio de esa mano
+      if(stored[which]){
+        openModal(stored[which].prize.title, stored[which].prize.sub);
+        return;
+      }
+
+      // Si no fue elegida => abrir y guardar
       const prize = PRIZES[which];
       if(!prize) return;
 
-      canPick = false;
-      statusPill.innerHTML = "🎁 Abriendo regalo…";
+      busyPick = true;
 
       const giftObj = (which === "left") ? giftLeft : giftRight;
-
       openGiftAnim(giftObj, () => {
         try{
-          confetti({
-            particleCount: 120,
-            spread: 70,
-            origin: { y: 0.55 },
-            scalar: 0.9,
-            ticks: 180
-          });
+          confetti({ particleCount: 120, spread: 70, origin: { y: 0.55 }, scalar: 0.9, ticks: 180 });
         } catch {}
 
-        setStored({ which, prize });
-        updateUIFromStorage();
+        const next = getStored();
+        next[which] = { prize };
+        setStored(next);
+
+        updateUI();
         openModal(prize.title, prize.sub);
+
+        busyPick = false;
       });
     }
 
@@ -891,7 +1025,6 @@
         giftObj.group.rotation.y += 0.010;
 
         if(p >= 1){
-          giftObj.isOpen = true;
           giftObj.busy = false;
           done && done();
           return false;
@@ -900,40 +1033,10 @@
       });
     }
 
-    // ===== FIX: regalos totalmente estáticos (sin bobbing / sin drift) =====
     function animate(t=performance.now()){
       requestAnimationFrame(animate);
       if(anims.length) anims = anims.filter(fn => fn(t) !== false);
       renderer.render(scene, camera);
-    }
-
-    // ========= STORAGE / UI =========
-    function setStored(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
-    function getStored(){
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if(!raw) return null;
-        return JSON.parse(raw);
-      } catch { return null; }
-    }
-
-    function updateUIFromStorage(){
-      const stored = getStored();
-      if(stored){
-        statusPill.innerHTML = "✅ Ya elegiste tu regalo. <strong>¡Felices fiestas!</strong>";
-        btnMyPrize.style.display = "inline-flex";
-        canPick = true;
-      } else {
-        statusPill.innerHTML = "🎁 Elegí <strong>1 regalo</strong> (solo una vez)";
-        btnMyPrize.style.display = "none";
-        canPick = true;
-      }
-    }
-
-    function showStoredPrize(){
-      const stored = getStored();
-      if(!stored) return;
-      openModal(stored.prize.title, stored.prize.sub);
     }
   </script>
 </body>
