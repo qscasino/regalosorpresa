@@ -190,7 +190,18 @@
     }
     #gameLogo.hidden{ display:none; }
 
+    /* ✅ FIX: Contenedor que se dimensiona por el <img> y el WebGL calza 1:1 encima */
+    #santaBox{
+      position:relative;
+      display:inline-block; /* se ajusta al tamaño real del PNG */
+      line-height:0;
+      user-select:none;
+      -webkit-user-drag:none;
+      transform: translateZ(0);
+    }
+
     #santaBg{
+      display:block; /* evita comportamiento inline raro en móvil */
       height: min(92vh, 980px);
       width:auto;
       max-width: 96vw;
@@ -198,18 +209,17 @@
       user-select:none;
       -webkit-user-drag:none;
       filter: drop-shadow(0 22px 50px rgba(0,0,0,.45));
-      transform: translateZ(0);
     }
 
-    /* renderer overlay */
+    /* renderer overlay (ahora EXACTAMENTE arriba del PNG) */
     #gl{
       position:absolute;
       inset:0;
       pointer-events:auto;
       z-index:3;
+      width:100%;
+      height:100%;
     }
-
-    /* === Eliminamos los 2 carteles superiores (top-ui ya no existe) === */
 
     /* Botón “Ver premio” abajo del Santa */
     #bottomPrize{
@@ -429,8 +439,11 @@
         <img id="gameLogo" src="assets/logo.png" alt="Logo" class="hidden"
              onerror="this.classList.add('hidden')">
 
-        <img id="santaBg" src="assets/santa.png" alt="Santa" draggable="false" />
-        <div id="gl"></div>
+        <!-- ✅ FIX: imagen + WebGL en el mismo box -->
+        <div id="santaBox">
+          <img id="santaBg" src="assets/santa.png" alt="Santa" draggable="false" />
+          <div id="gl"></div>
+        </div>
 
         <!-- Botón abajo (solo si ya jugó) -->
         <div id="bottomPrize">
@@ -495,9 +508,6 @@
     // =========================
     // AUDIO (assets/)
     // =========================
-    // Poné estos archivos en assets/:
-    //  - assets/bg.mp3   (música de fondo)
-    //  - assets/popup.mp3 (sonido popup)
     const bgAudio = new Audio("assets/bg.mp3");
     bgAudio.loop = true;
     bgAudio.volume = 0.35;
@@ -510,15 +520,8 @@
     function startAudioOnce(){
       if(audioStarted) return;
       audioStarted = true;
-
-      // intento inmediato
-      bgAudio.play().catch(() => {
-        // por si el primer intento falla, reintenta en el próximo gesto
-        audioStarted = false;
-      });
+      bgAudio.play().catch(() => { audioStarted = false; });
     }
-
-    // Se inicia con el primer toque/click en la página
     window.addEventListener("pointerdown", startAudioOnce, { passive:true });
     window.addEventListener("keydown", startAudioOnce);
 
@@ -530,7 +533,7 @@
     }
 
     // =========================
-    // PRELOADER 0 → 100 (real + mínimo visible)
+    // PRELOADER 0 → 100
     // =========================
     const preloader = document.getElementById("preloader");
     const barFill   = document.getElementById("barFill");
@@ -634,16 +637,13 @@
       setTarget(0);
       requestAnimationFrame(renderPct);
 
-      // Mínimo para que “se vea” el 0→100 (evita saltar a 14% y listo).
       const MIN_PRELOAD_MS = 1200;
       const t0 = performance.now();
 
-      // 3 tareas reales (en vez de 2) para que el % sea más “natural”
       const tasks = 3;
       let done = 0;
       const step = (toPct) => {
         done++;
-        // mapa al 0..92% con steps visibles
         const pct = Math.min(92, Math.round((done/tasks) * 92));
         setTarget(Math.max(pct, toPct ?? pct));
       };
@@ -657,7 +657,6 @@
       step(66);
 
       hintEl.textContent = "Preparando escena…";
-      // pequeño “warm-up” para que se vea progreso (sin bloquear)
       await delay(220);
       step(92);
 
@@ -666,18 +665,15 @@
       if(!okThree) warns.push("No se pudo cargar Three.js (revisá conexión/CSP).");
       if(warns.length) showErr("⚠️ " + warns.join(" "));
 
-      // Espera mínimo visible
       const elapsed = performance.now() - t0;
       if(elapsed < MIN_PRELOAD_MS) await delay(MIN_PRELOAD_MS - elapsed);
 
-      // Final 100% (y deja respirar 1 frame)
       setTarget(100);
       await delay(180);
       finishedBoot = true;
       barFill.style.width = "100%";
       pctEl.textContent = "100%";
 
-      // Mostrar logo en juego
       const gameLogo = document.getElementById("gameLogo");
       gameLogo.classList.remove("hidden");
 
@@ -686,7 +682,6 @@
         if(okThree) start();
       }, 200);
     }
-
     boot();
 
     // =========================
@@ -749,7 +744,7 @@
     function getStored(){
       try{
         const raw = localStorage.getItem(STORAGE_KEY);
-        if(!raw) return null; // { which, prize }
+        if(!raw) return null;
         return JSON.parse(raw);
       } catch { return null; }
     }
@@ -760,11 +755,7 @@
       return !!getStored();
     }
     function syncBottomButton(){
-      if(alreadyPlayed()){
-        bottomPrize.style.display = "block";
-      } else {
-        bottomPrize.style.display = "none";
-      }
+      bottomPrize.style.display = alreadyPlayed() ? "block" : "none";
     }
     btnSeePrize.addEventListener("click", () => {
       const s = getStored();
@@ -773,7 +764,7 @@
     });
 
     // =========================
-    // THREE + Anclaje estable
+    // THREE + Anclaje estable (FIX)
     // =========================
     let scene, camera, renderer, raycaster, mouse;
     let giftLeft, giftRight;
@@ -808,7 +799,6 @@
     function start(){
       initThree();
 
-      // listeners robustos
       window.addEventListener("resize", scheduleLayout);
       window.addEventListener("orientationchange", () => setTimeout(scheduleLayout, 160));
       window.visualViewport?.addEventListener("resize", scheduleLayout);
@@ -820,7 +810,6 @@
         ro.observe(santaImg);
       } catch {}
 
-      // settle móvil
       setTimeout(scheduleLayout, 80);
       setTimeout(scheduleLayout, 220);
       setTimeout(scheduleLayout, 520);
@@ -885,7 +874,7 @@
     }
 
     function onResize(){
-      const rect = glHost.getBoundingClientRect();
+      const rect = glHost.getBoundingClientRect(); // ✅ ahora es EXACTAMENTE el tamaño del PNG
       W = Math.max(1, Math.floor(rect.width));
       H = Math.max(1, Math.floor(rect.height));
 
@@ -907,31 +896,29 @@
 
     function positionGiftsToHands(){
       if(!giftLeft || !giftRight) return;
-
-      const imgRect = santaImg.getBoundingClientRect();
-      const ovRect  = glHost.getBoundingClientRect();
-      if(imgRect.width < 10 || imgRect.height < 10 || ovRect.width < 10 || ovRect.height < 10) return;
+      if(W < 10 || H < 10) return;
 
       const hands = handsForViewport();
       const giftScale = scaleForViewport();
+      const size = Math.min(W, H) * giftScale;
+      const z = 320;
 
+      const rect = glHost.getBoundingClientRect();
+
+      // ✅ FIX: como el canvas calza 1:1 con la imagen,
+      // usamos coordenadas normalizadas directo sobre W/H (sin mezclar rects).
       const toWorld = (norm) => {
-        const px = imgRect.left + norm.x * imgRect.width;
-        const py = imgRect.top  + norm.y * imgRect.height;
-
-        const lx = px - ovRect.left;
-        const ly = py - ovRect.top;
+        const lx = norm.x * W;
+        const ly = norm.y * H;
 
         const wx = lx - (W/2);
         const wy = (H/2) - ly;
-        return { x: wx, y: wy, px, py };
+
+        return { x: wx, y: wy, px: rect.left + lx, py: rect.top + ly };
       };
 
       const L = toWorld(hands.left);
       const R = toWorld(hands.right);
-
-      const size = Math.min(imgRect.width, imgRect.height) * giftScale;
-      const z = 320;
 
       giftLeft.group.position.set(L.x, L.y, z);
       giftRight.group.position.set(R.x, R.y, z);
@@ -1014,7 +1001,6 @@
       e.preventDefault();
       if(busyPick) return;
 
-      // Si ya jugó: cualquier toque sobre un regalo muestra el premio guardado
       const stored = getStored();
 
       const rect = renderer.domElement.getBoundingClientRect();
@@ -1035,7 +1021,7 @@
       }
 
       const giftGroup = hit.object.userData.parentGift;
-      const which = giftGroup.userData.id; // "left" | "right"
+      const which = giftGroup.userData.id;
       pickGift(which);
     }
 
