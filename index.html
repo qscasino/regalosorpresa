@@ -174,7 +174,6 @@
       padding:10px;
     }
 
-    /* Logo en pantalla de juego (arriba, pegado al borde) */
     #gameLogo{
       position:absolute;
       top:10px;
@@ -190,10 +189,10 @@
     }
     #gameLogo.hidden{ display:none; }
 
-    /* ✅ FIX: Contenedor que se dimensiona por el <img> y el WebGL calza 1:1 encima */
+    /* ✅ Imagen y WebGL en el mismo box (overlay 1:1) */
     #santaBox{
       position:relative;
-      display:inline-block; /* se ajusta al tamaño real del PNG */
+      display:inline-block;
       line-height:0;
       user-select:none;
       -webkit-user-drag:none;
@@ -201,7 +200,7 @@
     }
 
     #santaBg{
-      display:block; /* evita comportamiento inline raro en móvil */
+      display:block;
       height: min(92vh, 980px);
       width:auto;
       max-width: 96vw;
@@ -211,7 +210,6 @@
       filter: drop-shadow(0 22px 50px rgba(0,0,0,.45));
     }
 
-    /* renderer overlay (ahora EXACTAMENTE arriba del PNG) */
     #gl{
       position:absolute;
       inset:0;
@@ -221,7 +219,6 @@
       height:100%;
     }
 
-    /* Botón “Ver premio” abajo del Santa */
     #bottomPrize{
       position:absolute;
       left:50%;
@@ -229,7 +226,7 @@
       transform: translateX(-50%);
       z-index:6;
       pointer-events:auto;
-      display:none; /* aparece solo cuando ya eligió */
+      display:none;
     }
     .btn{
       pointer-events:auto;
@@ -250,7 +247,7 @@
     .btn:hover{ transform: translateY(-1px); border-color:rgba(255,255,255,.35); filter: brightness(1.05); }
     .btn:active{ transform: translateY(0px) scale(.99); }
 
-    /* ===== MODAL “casino” ===== */
+    /* ===== MODAL ===== */
     #modal{
       position:fixed; inset:0;
       display:none;
@@ -388,7 +385,6 @@
       to{ transform: translateY(110vh); }
     }
 
-    /* Debug markers */
     .dbg-dot{
       position:fixed;
       width:14px; height:14px;
@@ -435,17 +431,14 @@
 
     <div id="stage">
       <div id="santaWrap">
-        <!-- Logo en juego -->
         <img id="gameLogo" src="assets/logo.png" alt="Logo" class="hidden"
              onerror="this.classList.add('hidden')">
 
-        <!-- ✅ FIX: imagen + WebGL en el mismo box -->
         <div id="santaBox">
           <img id="santaBg" src="assets/santa.png" alt="Santa" draggable="false" />
           <div id="gl"></div>
         </div>
 
-        <!-- Botón abajo (solo si ya jugó) -->
         <div id="bottomPrize">
           <button class="btn" id="btnSeePrize">🎁 Ver premio</button>
         </div>
@@ -473,7 +466,6 @@
     </div>
   </div>
 
-  <!-- Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <script>
@@ -482,8 +474,6 @@
     // =========================
     const STORAGE_KEY = "santa_gift_one_v1";
 
-    // 👉 Tus posiciones quedan iguales (no las toco).
-    // Importante: el usuario SOLO puede elegir 1 regalo (izq o der).
     const HANDS = {
       desktop: {
         left:  { x: 0.10, y: 0.35 },
@@ -495,9 +485,16 @@
       }
     };
 
+    // ✅ FIX: mobile MÁS chico que desktop (y además auto-fit más abajo)
     const SCALE = {
       desktop: 0.16,
-      mobile:  0.18
+      mobile:  0.12
+    };
+
+    // clamp final (evita tamaños locos por device/zoom)
+    const SCALE_CLAMP = {
+      desktop: { min: 72, max: 190 },
+      mobile:  { min: 56, max: 130 }
     };
 
     const PRIZES = {
@@ -533,7 +530,7 @@
     }
 
     // =========================
-    // PRELOADER 0 → 100
+    // PRELOADER
     // =========================
     const preloader = document.getElementById("preloader");
     const barFill   = document.getElementById("barFill");
@@ -739,7 +736,7 @@
     };
 
     // =========================
-    // Storage (SOLO 1 PREMIO)
+    // Storage
     // =========================
     function getStored(){
       try{
@@ -764,7 +761,7 @@
     });
 
     // =========================
-    // THREE + Anclaje estable (FIX)
+    // THREE
     // =========================
     let scene, camera, renderer, raycaster, mouse;
     let giftLeft, giftRight;
@@ -785,6 +782,10 @@
     function scaleForViewport(){
       return isMobile() ? SCALE.mobile : SCALE.desktop;
     }
+    function clampCfg(){
+      return isMobile() ? SCALE_CLAMP.mobile : SCALE_CLAMP.desktop;
+    }
+    function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
 
     let layoutPending = false;
     function scheduleLayout(){
@@ -874,7 +875,7 @@
     }
 
     function onResize(){
-      const rect = glHost.getBoundingClientRect(); // ✅ ahora es EXACTAMENTE el tamaño del PNG
+      const rect = glHost.getBoundingClientRect();
       W = Math.max(1, Math.floor(rect.width));
       H = Math.max(1, Math.floor(rect.height));
 
@@ -900,25 +901,47 @@
 
       const hands = handsForViewport();
       const giftScale = scaleForViewport();
-      const size = Math.min(W, H) * giftScale;
-      const z = 320;
+      const cfg = clampCfg();
 
-      const rect = glHost.getBoundingClientRect();
+      const halfW = W/2, halfH = H/2;
+      const margin = isMobile() ? 8 : 14;
 
-      // ✅ FIX: como el canvas calza 1:1 con la imagen,
-      // usamos coordenadas normalizadas directo sobre W/H (sin mezclar rects).
+      // Convertimos (0..1) a mundo (px) directo
       const toWorld = (norm) => {
         const lx = norm.x * W;
         const ly = norm.y * H;
-
-        const wx = lx - (W/2);
-        const wy = (H/2) - ly;
-
-        return { x: wx, y: wy, px: rect.left + lx, py: rect.top + ly };
+        const wx = lx - halfW;
+        const wy = halfH - ly;
+        return { x: wx, y: wy, lx, ly };
       };
 
       const L = toWorld(hands.left);
       const R = toWorld(hands.right);
+
+      // Tamaño base
+      let size = Math.min(W, H) * giftScale;
+
+      // ✅ AUTO-FIT: limita el tamaño para que ambos regalos entren en pantalla
+      // El "hit" es 1.35 x 1.0 (ver createGift). Half extents:
+      const hitHalfX = 1.35 / 2; // 0.675
+      const hitHalfY = 1.0  / 2; // 0.5
+
+      function maxSizeAt(x, y){
+        const maxHw = Math.min(x + halfW - margin, halfW - x - margin);
+        const maxHh = Math.min(y + halfH - margin, halfH - y - margin);
+        const maxFromX = maxHw / hitHalfX;
+        const maxFromY = maxHh / hitHalfY;
+        return Math.max(10, Math.min(maxFromX, maxFromY));
+      }
+
+      const maxL = maxSizeAt(L.x, L.y);
+      const maxR = maxSizeAt(R.x, R.y);
+
+      size = Math.min(size, maxL, maxR);
+      size = clamp(size, cfg.min, cfg.max);
+      size = Math.min(size, maxL, maxR); // por si el clamp lo empuja arriba
+
+      const z = 320;
 
       giftLeft.group.position.set(L.x, L.y, z);
       giftRight.group.position.set(R.x, R.y, z);
@@ -930,10 +953,11 @@
       giftRight.group.rotation.set(0.10,  0.30, -0.02);
 
       if(isDebug && dbgL && dbgR){
-        dbgL.style.left = L.px + "px";
-        dbgL.style.top  = L.py + "px";
-        dbgR.style.left = R.px + "px";
-        dbgR.style.top  = R.py + "px";
+        const rect = glHost.getBoundingClientRect();
+        dbgL.style.left = (rect.left + L.lx) + "px";
+        dbgL.style.top  = (rect.top  + L.ly) + "px";
+        dbgR.style.left = (rect.left + R.lx) + "px";
+        dbgR.style.top  = (rect.top  + R.ly) + "px";
       }
     }
 
