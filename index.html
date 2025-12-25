@@ -5,81 +5,113 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Regalos de Navidad</title>
 
+  <!-- Tip: poné tu santa estilo “3D cute” en: assets/santa.png -->
+  <!-- Tip: tu logo (opcional) en: assets/logo.png -->
+
   <style>
     :root{
-      --bg1:#1a070a;        /* vino oscuro */
-      --bg2:#3a0b10;        /* rojo profundo */
-      --card:#2a0a10cc;     /* panel */
-      --stroke:#ffffff22;
-      --text:#ffffff;
-      --muted:#ffffffb3;
+      /* Paleta cálida tipo “render 3D cute” (bokeh + dorados) */
+      --bgA:#ffb39a;
+      --bgB:#ff6c73;
+      --bgC:#7c1b2c;
+      --panel: rgba(20,10,14,.55);
+      --stroke: rgba(255,255,255,.18);
+      --text:#fff;
+      --muted: rgba(255,255,255,.78);
 
       --gold:#ffd36a;
       --gold2:#ffb84d;
+      --mint:#2fd6a0;
 
-      --danger:#ff5b6a;
-      --ok:#35d07f;
+      --shadow: 0 22px 70px rgba(0,0,0,.45);
+      --radius: 22px;
 
-      --shadow: 0 18px 55px rgba(0,0,0,.55);
-      --radius: 18px;
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
 
-    *{box-sizing:border-box}
+    *{ box-sizing:border-box }
     html,body{
       height:100%;
       margin:0;
       font-family:var(--font);
       color:var(--text);
-      background:
-        radial-gradient(900px 600px at 50% 0%, rgba(255,211,106,.28) 0%, rgba(255,211,106,0) 55%),
-        radial-gradient(1200px 900px at 50% 10%, #6a101a 0%, var(--bg2) 38%, var(--bg1) 100%);
       overflow:hidden;
+      background:
+        radial-gradient(1200px 700px at 50% 12%, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 60%),
+        radial-gradient(900px 650px at 20% 18%, rgba(255,211,106,.22) 0%, rgba(255,211,106,0) 55%),
+        radial-gradient(900px 650px at 80% 22%, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 60%),
+        radial-gradient(1200px 900px at 50% 0%, var(--bgA) 0%, var(--bgB) 40%, var(--bgC) 100%);
+    }
+
+    /* Bokeh suave */
+    body::before{
+      content:"";
+      position:fixed; inset:-20%;
+      pointer-events:none;
+      background:
+        radial-gradient(120px 120px at 10% 20%, rgba(255,211,106,.35) 0%, rgba(255,211,106,0) 60%),
+        radial-gradient(160px 160px at 22% 62%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 62%),
+        radial-gradient(140px 140px at 86% 34%, rgba(255,211,106,.28) 0%, rgba(255,211,106,0) 60%),
+        radial-gradient(190px 190px at 78% 78%, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 65%);
+      filter: blur(2px);
+      opacity:.9;
+      transform: rotate(-2deg);
     }
 
     /* ===== PRELOADER ===== */
     #preloader{
       position:fixed; inset:0;
       display:flex; align-items:center; justify-content:center;
-      background:
-        radial-gradient(900px 700px at 50% 30%, rgba(255,211,106,.22) 0%, rgba(255,211,106,0) 55%),
-        radial-gradient(900px 700px at 50% 20%, #7b1220 0%, #2a0a10 55%, #120407 100%);
       z-index:9999;
+      background:
+        radial-gradient(900px 700px at 50% 25%, rgba(255,211,106,.22) 0%, rgba(255,211,106,0) 55%),
+        radial-gradient(1200px 900px at 50% 0%, rgba(255,179,154,.95) 0%, rgba(255,108,115,.92) 35%, rgba(124,27,44,.98) 100%);
     }
     .pre-card{
-      width:min(520px, 92vw);
+      width:min(560px, 92vw);
       padding:22px 18px 18px;
       border:1px solid var(--stroke);
-      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.22));
+      background: linear-gradient(180deg, rgba(20,10,14,.56), rgba(0,0,0,.22));
       border-radius:var(--radius);
       box-shadow:var(--shadow);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(14px);
       text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .pre-card::after{
+      content:"";
+      position:absolute; inset:-40%;
+      background: radial-gradient(circle at 50% 0%, rgba(255,211,106,.20), rgba(255,211,106,0) 60%);
+      transform: rotate(8deg);
+      pointer-events:none;
     }
     .brand{
+      position:relative;
       display:flex; flex-direction:column; align-items:center; gap:10px;
       margin-bottom:14px;
     }
     .brand img{
-      max-width:min(210px, 65vw);
-      max-height:64px;
+      max-width:min(220px, 70vw);
+      max-height:66px;
       object-fit:contain;
-      filter: drop-shadow(0 10px 18px rgba(0,0,0,.55));
+      filter: drop-shadow(0 12px 22px rgba(0,0,0,.45));
     }
     .brand .fallback{
       font-weight:900;
-      letter-spacing:.8px;
+      letter-spacing:.9px;
       text-transform:uppercase;
       font-size:18px;
       opacity:.95;
     }
     .bar{
+      position:relative;
       height:14px;
       border-radius:999px;
       border:1px solid var(--stroke);
-      background:#0b0406;
+      background: rgba(0,0,0,.25);
       overflow:hidden;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
     }
     .bar > div{
       height:100%;
@@ -87,18 +119,35 @@
       background: linear-gradient(90deg, #ffd36a, #ffb84d, #ff5b6a);
       border-radius:999px;
       transition: width .12s ease;
+      will-change: width;
     }
     .pct{
+      position:relative;
       margin-top:10px;
       font-size:13px;
       color:var(--muted);
       letter-spacing:.2px;
     }
     .hint{
+      position:relative;
       margin-top:8px;
       font-size:12px;
-      color:#ffffffa6;
+      color:rgba(255,255,255,.80);
     }
+    .err{
+      position:relative;
+      margin-top:10px;
+      font-size:12px;
+      color:rgba(255,255,255,.90);
+      background: rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.14);
+      padding:10px 10px;
+      border-radius:14px;
+      display:none;
+      text-align:left;
+      line-height:1.25;
+    }
+    .err.show{ display:block; }
 
     /* ===== STAGE ===== */
     #app{
@@ -120,6 +169,17 @@
       justify-content:center;
       z-index:1;
     }
+
+    #santaWrap{
+      position:relative;
+      width:100%;
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px;
+    }
+
     #santaBg{
       height: min(92vh, 980px);
       width:auto;
@@ -127,7 +187,8 @@
       object-fit:contain;
       user-select:none;
       -webkit-user-drag:none;
-      filter: drop-shadow(0 20px 40px rgba(0,0,0,.62));
+      filter: drop-shadow(0 22px 50px rgba(0,0,0,.45));
+      transform: translateZ(0);
     }
 
     /* renderer overlay */
@@ -157,29 +218,29 @@
       padding:10px 12px;
       border:1px solid var(--stroke);
       border-radius:999px;
-      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.18));
-      backdrop-filter: blur(10px);
-      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+      background: linear-gradient(180deg, rgba(20,10,14,.45), rgba(0,0,0,.18));
+      backdrop-filter: blur(14px);
+      box-shadow: 0 14px 40px rgba(0,0,0,.25);
       font-size:13px;
       color:var(--muted);
-      max-width:min(520px, 92vw);
+      max-width:min(560px, 92vw);
     }
     .pill strong{ color:#fff; font-weight:900; }
 
     .btn{
       pointer-events:auto;
       border:1px solid var(--stroke);
-      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.18));
+      background: linear-gradient(180deg, rgba(20,10,14,.45), rgba(0,0,0,.18));
       color:#fff;
       padding:10px 12px;
       border-radius:999px;
       font-weight:900;
       letter-spacing:.2px;
       cursor:pointer;
-      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+      box-shadow: 0 14px 40px rgba(0,0,0,.25);
       transition: transform .12s ease, border-color .12s ease, filter .12s ease;
     }
-    .btn:hover{ transform: translateY(-1px); border-color:#ffffff55; filter: brightness(1.05); }
+    .btn:hover{ transform: translateY(-1px); border-color:rgba(255,255,255,.35); filter: brightness(1.05); }
     .btn:active{ transform: translateY(0px) scale(.99); }
 
     /* ===== MODAL ===== */
@@ -189,16 +250,16 @@
       align-items:center; justify-content:center;
       padding:16px;
       z-index:9998;
-      background: rgba(0,0,0,.62);
-      backdrop-filter: blur(7px);
+      background: rgba(0,0,0,.58);
+      backdrop-filter: blur(10px);
     }
     #modal.show{ display:flex; }
     .modal-card{
-      width:min(520px, 92vw);
+      width:min(560px, 92vw);
       border-radius:var(--radius);
       background:
-        radial-gradient(700px 380px at 50% 0%, rgba(255,211,106,.18), rgba(255,211,106,0) 65%),
-        linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.32));
+        radial-gradient(700px 380px at 50% 0%, rgba(255,211,106,.22), rgba(255,211,106,0) 65%),
+        linear-gradient(180deg, rgba(20,10,14,.60), rgba(0,0,0,.28));
       border:1px solid var(--stroke);
       box-shadow: var(--shadow);
       padding:18px 16px 14px;
@@ -224,14 +285,14 @@
     .prize{
       margin-top:8px;
       padding:12px;
-      border:1px solid #ffffff2a;
-      border-radius:14px;
-      background: rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:16px;
+      background: rgba(0,0,0,.18);
     }
     .prize .big{
       font-size:18px;
       font-weight:900;
-      color: #fff;
+      color:#fff;
     }
     .prize .sub{
       margin-top:6px;
@@ -248,7 +309,7 @@
     }
     .btn-primary{
       background: linear-gradient(90deg, #ffd36a, #ffb84d, #ff5b6a);
-      color:#24040b;
+      color:#2a0a10;
       border-color:transparent;
     }
     .btn-ghost{
@@ -276,8 +337,8 @@
       top:-10px;
       width:6px; height:6px;
       border-radius:999px;
-      background: rgba(255,255,255,.88);
-      box-shadow: 0 0 10px rgba(255,255,255,.35);
+      background: rgba(255,255,255,.85);
+      box-shadow: 0 0 10px rgba(255,255,255,.28);
       opacity:.9;
       animation: fall linear infinite;
     }
@@ -299,7 +360,8 @@
 
       <div class="bar"><div id="barFill"></div></div>
       <div class="pct" id="pct">0%</div>
-      <div class="hint">Cargando experiencia navideña…</div>
+      <div class="hint" id="hint">Cargando experiencia navideña…</div>
+      <div class="err" id="errBox"></div>
     </div>
   </div>
 
@@ -308,15 +370,14 @@
     <div id="snowLayer"></div>
 
     <div id="stage">
-      <!-- IMPORTANTE: poné tu Santa en assets/santa.png -->
-      <img id="santaBg" src="assets/santa.png" alt="Santa" draggable="false" />
-      <div id="gl"></div>
+      <div id="santaWrap">
+        <img id="santaBg" src="assets/santa.png" alt="Santa" draggable="false" />
+        <div id="gl"></div>
 
-      <div class="top-ui">
-        <div class="pill" id="statusPill">
-          🎁 Elegí <strong>1 regalo</strong> (solo una vez)
+        <div class="top-ui">
+          <div class="pill" id="statusPill">🎁 Elegí <strong>1 regalo</strong> (solo una vez)</div>
+          <button class="btn" id="btnMyPrize" style="display:none;">Ver mi premio</button>
         </div>
-        <button class="btn" id="btnMyPrize" style="display:none;">Ver mi premio</button>
       </div>
     </div>
   </div>
@@ -341,94 +402,173 @@
     </div>
   </div>
 
-  <!-- Three.js -->
-  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <!-- Confetti (para “apertura” del regalo) -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
   <script>
     // ========= CONFIG =========
-    const STORAGE_KEY = "santa_gift_choice_v1";
+    const STORAGE_KEY = "santa_gift_choice_v2";
 
-    // Coordenadas NORMALIZADAS (0..1) sobre la imagen
-    // Si los regalos quedan corridos, ajustás SOLO esto:
-    const HAND_L = { x: 0.29, y: 0.52 };
-    const HAND_R = { x: 0.71, y: 0.52 };
+    // Coordenadas NORMALIZADAS (0..1) sobre la imagen de santa (ajustá solo esto si hace falta)
+    const HAND_L = { x: 0.28, y: 0.56 };
+    const HAND_R = { x: 0.72, y: 0.56 };
 
-    // Premios fijos por regalo
+    // Premios por regalo (ejemplo)
     const PRIZES = {
-      left: {
-        title: "🎁 Bono 200% en tu próxima carga",
-        sub: "Se acredita en tu próxima carga. Consultá condiciones con tu asesor."
-      },
-      right: {
-        title: "🎁 3000 fichas gratis",
-        sub: "Se activa con una carga mínima de 5000. Consultá condiciones con tu asesor."
-      }
+      left:  { title: "🎁 Bono 200% en tu próxima carga", sub: "Se acredita en tu próxima carga. Consultá condiciones con tu asesor." },
+      right: { title: "🎁 3000 fichas gratis",            sub: "Se activa con una carga mínima de 5000. Consultá condiciones con tu asesor." }
     };
 
-    // ========= PRELOADER (FIX 99% + fallback) =========
+    // ========= PRELOADER (ARREGLA 99% CLAVADO) =========
     const preloader = document.getElementById("preloader");
-    const barFill = document.getElementById("barFill");
-    const pct = document.getElementById("pct");
-    const santaImg = document.getElementById("santaBg");
+    const barFill   = document.getElementById("barFill");
+    const pctEl     = document.getElementById("pct");
+    const hintEl    = document.getElementById("hint");
+    const errBox    = document.getElementById("errBox");
 
-    let progress = 0;
+    const santaImg  = document.getElementById("santaBg");
 
-    function waitForImage(img, timeoutMs = 4500){
+    let targetPct = 0;
+    let visualPct = 0;
+    let finishedBoot = false;
+
+    function setTarget(p){ targetPct = Math.max(targetPct, Math.min(100, p)); }
+    function renderPct(){
+      visualPct += (targetPct - visualPct) * 0.14;
+      const v = Math.floor(visualPct);
+      barFill.style.width = v + "%";
+      pctEl.textContent = v + "%";
+      if(!finishedBoot) requestAnimationFrame(renderPct);
+    }
+
+    function showErr(msg){
+      errBox.textContent = msg;
+      errBox.classList.add("show");
+    }
+
+    function ensureImageLoaded(img, timeoutMs=5500){
       return new Promise((resolve) => {
-        // cache
-        if (img.complete && img.naturalWidth > 0) return resolve(true);
+        if(!img || !img.src) return resolve({ ok:false, why:"img-missing" });
+        if(img.complete) return resolve({ ok: img.naturalWidth > 0, why: img.naturalWidth > 0 ? "cache" : "broken" });
 
         let done = false;
-        const finish = (ok) => {
-          if (done) return;
+        const t = setTimeout(() => finish(false, "timeout"), timeoutMs);
+
+        function finish(ok, why){
+          if(done) return;
           done = true;
-          cleanup();
-          resolve(ok);
-        };
-
-        const onLoad = () => finish(true);
-        const onErr  = () => finish(false);
-
-        const cleanup = () => {
+          clearTimeout(t);
           img.removeEventListener("load", onLoad);
           img.removeEventListener("error", onErr);
-          clearTimeout(t);
-        };
+          resolve({ ok, why });
+        }
+        function onLoad(){ finish(true, "load"); }
+        function onErr(){ finish(false, "error"); }
 
         img.addEventListener("load", onLoad, { once:true });
         img.addEventListener("error", onErr, { once:true });
-
-        const t = setTimeout(() => finish(false), timeoutMs);
       });
     }
 
-    const imgPromise = waitForImage(santaImg, 5000);
+    function loadScript(src, timeoutMs=7000){
+      return new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = src;
+        s.async = true;
 
-    const pTimer = setInterval(() => {
-      const step = (progress < 70) ? (Math.random()*10 + 6) : (Math.random()*4 + 1.5);
-      progress = Math.min(99, progress + step);
+        let done = false;
+        const t = setTimeout(() => {
+          if(done) return;
+          done = true;
+          s.remove();
+          reject(new Error("timeout " + src));
+        }, timeoutMs);
 
-      barFill.style.width = progress + "%";
-      pct.textContent = Math.floor(progress) + "%";
-    }, 120);
+        s.onload = () => {
+          if(done) return;
+          done = true;
+          clearTimeout(t);
+          resolve(true);
+        };
+        s.onerror = () => {
+          if(done) return;
+          done = true;
+          clearTimeout(t);
+          s.remove();
+          reject(new Error("error " + src));
+        };
 
-    Promise.race([
-      imgPromise,
-      new Promise(res => setTimeout(() => res(false), 5200))
-    ]).then(() => {
-      clearInterval(pTimer);
+        document.head.appendChild(s);
+      });
+    }
+
+    async function ensureThree(){
+      if(window.THREE) return true;
+
+      // Fallback por si el CDN falla (esto también evita “quedar clavado”)
+      const cdns = [
+        "https://unpkg.com/three@0.160.0/build/three.min.js",
+        "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"
+      ];
+
+      for(const url of cdns){
+        try{
+          hintEl.textContent = "Cargando motor 3D…";
+          await loadScript(url, 7000);
+          if(window.THREE) return true;
+        } catch(e){ /* intenta siguiente */ }
+      }
+      return false;
+    }
+
+    async function boot(){
+      setTarget(8);
+      requestAnimationFrame(renderPct);
+
+      // “Checklist” real de carga (ya no hay 99% eterno)
+      const total = 2; // santa + three
+      let done = 0;
+      const step = () => { done++; setTarget(Math.round((done/total)*92)); }; // hasta 92, luego 100 al final
+
+      // 1) Santa image
+      hintEl.textContent = "Cargando Santa…";
+      const santaRes = await ensureImageLoaded(santaImg, 6000);
+      step();
+
+      // 2) Three.js
+      const threeOk = await ensureThree();
+      step();
+
+      // Si faltó santa o three, igual avanzamos, pero avisamos
+      const warns = [];
+      if(!santaRes.ok) warns.push("No se pudo cargar assets/santa.png (igual avanzo).");
+      if(!threeOk) warns.push("No se pudo cargar Three.js (sin 3D no habrá regalos). Revisá conexión/CSP.");
+      if(warns.length) showErr("⚠️ " + warns.join(" "));
+
+      // Final
+      setTarget(100);
+      finishedBoot = true;
       barFill.style.width = "100%";
-      pct.textContent = "100%";
+      pctEl.textContent = "100%";
 
       setTimeout(() => {
         preloader.style.display = "none";
-        start();
-      }, 350);
-    });
+        try{
+          if(threeOk) start();
+        } catch(e){
+          showErr("Error al iniciar 3D: " + (e?.message || e));
+          preloader.style.display = "flex";
+        }
+      }, 260);
+    }
+
+    // Arranque garantizado (no depende de que “algo” resuelva perfecto)
+    boot();
 
     // ========= SNOW =========
     function spawnSnow(){
       const layer = document.getElementById("snowLayer");
-      const count = 36;
+      const count = 38;
       for(let i=0;i<count;i++){
         const f = document.createElement("div");
         f.className = "flake";
@@ -436,8 +576,8 @@
         f.style.width = size + "px";
         f.style.height = size + "px";
         f.style.left = (Math.random()*100) + "vw";
-        f.style.opacity = (0.35 + Math.random()*0.6).toFixed(2);
-        const dur = 6 + Math.random()*10;
+        f.style.opacity = (0.30 + Math.random()*0.6).toFixed(2);
+        const dur = 6 + Math.random()*11;
         f.style.animationDuration = dur + "s";
         f.style.animationDelay = (-Math.random()*dur) + "s";
         layer.appendChild(f);
@@ -487,56 +627,62 @@
       updateUIFromStorage();
       animate();
       window.addEventListener("resize", onResize);
-      window.addEventListener("orientationchange", () => setTimeout(onResize, 150));
-      glHost.addEventListener("pointerdown", onPointerDown, { passive:false });
+      window.addEventListener("orientationchange", () => setTimeout(onResize, 180));
       btnMyPrize.addEventListener("click", showStoredPrize);
     }
 
     function initThree(){
       scene = new THREE.Scene();
-
       raycaster = new THREE.Raycaster();
       mouse = new THREE.Vector2();
 
       renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
       renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
       renderer.setClearColor(0x000000, 0);
+      renderer.domElement.style.position = "absolute";
+      renderer.domElement.style.inset = "0";
+      renderer.domElement.style.touchAction = "manipulation";
       glHost.appendChild(renderer.domElement);
 
-      // luces suaves navideñas (dorado cálido)
-      const ambient = new THREE.AmbientLight(0xffffff, 0.82);
-      scene.add(ambient);
+      // Luces cálidas tipo “render cute”
+      scene.add(new THREE.AmbientLight(0xffffff, 0.80));
 
-      const dir = new THREE.DirectionalLight(0xffffff, 0.95);
-      dir.position.set(300, 500, 600);
-      scene.add(dir);
+      const hemi = new THREE.HemisphereLight(0xfff0df, 0x2a0a10, 0.55);
+      scene.add(hemi);
 
-      const warm = new THREE.PointLight(0xffd36a, 0.95, 1200);
-      warm.position.set(0, 120, 520);
+      const key = new THREE.DirectionalLight(0xffffff, 0.85);
+      key.position.set(300, 520, 620);
+      scene.add(key);
+
+      const warm = new THREE.PointLight(0xffd36a, 1.05, 1400);
+      warm.position.set(0, 140, 580);
       scene.add(warm);
+
+      const rim = new THREE.PointLight(0xffffff, 0.55, 1200);
+      rim.position.set(-420, 240, 420);
+      scene.add(rim);
 
       onResize();
 
-      // regalos
+      // regalos (uno por mano)
       giftLeft  = createGift({ primary:0xff5b6a, ribbon:0xffd36a, id:"left"  }); // rojo + dorado
-      giftRight = createGift({ primary:0x2fd6a0, ribbon:0xffffff, id:"right" }); // verde navidad (contraste)
-      scene.add(giftLeft.group);
-      scene.add(giftRight.group);
+      giftRight = createGift({ primary:0x2fd6a0, ribbon:0xffffff, id:"right" }); // verde + blanco
+      scene.add(giftLeft.group, giftRight.group);
 
       positionGiftsToHands();
+
+      // interacción
+      renderer.domElement.addEventListener("pointerdown", onPointerDown, { passive:false });
     }
 
     function onResize(){
-      const rect = glHost.getBoundingClientRect();
-      W = Math.max(1, Math.floor(rect.width));
-      H = Math.max(1, Math.floor(rect.height));
+      const stageRect = document.getElementById("stage").getBoundingClientRect();
+      W = Math.max(1, Math.floor(stageRect.width));
+      H = Math.max(1, Math.floor(stageRect.height));
 
       renderer.setSize(W, H, false);
 
-      // cámara ortográfica con unidades “pixel”
-      camera = new THREE.OrthographicCamera(
-        -W/2, W/2, H/2, -H/2, -2000, 2000
-      );
+      camera = new THREE.OrthographicCamera(-W/2, W/2, H/2, -H/2, -2000, 2000);
       camera.position.z = 900;
 
       positionGiftsToHands();
@@ -555,9 +701,7 @@
         const cx = px - stageRect.left;
         const cy = py - stageRect.top;
 
-        const wx = (cx - W/2);
-        const wy = (H/2 - cy);
-        return { x: wx, y: wy };
+        return { x: (cx - W/2), y: (H/2 - cy) };
       }
 
       const L = handToWorld(HAND_L);
@@ -580,24 +724,37 @@
       const group = new THREE.Group();
       group.userData.id = id;
 
-      // caja
-      const matBox = new THREE.MeshStandardMaterial({ color: primary, roughness:0.55, metalness:0.10 });
+      // Material “cute” con brillo suave
+      const matBox = new THREE.MeshPhysicalMaterial({
+        color: primary,
+        roughness: 0.35,
+        metalness: 0.05,
+        clearcoat: 0.35,
+        clearcoatRoughness: 0.45
+      });
+
+      const matRibbon = new THREE.MeshPhysicalMaterial({
+        color: ribbon,
+        roughness: 0.25,
+        metalness: 0.15,
+        clearcoat: 0.25,
+        clearcoatRoughness: 0.30
+      });
+
+      // Caja
       const box = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.72, 1.0), matBox);
-      box.position.y = 0.0;
       group.add(box);
 
-      // cinta vertical
-      const matRibbon = new THREE.MeshStandardMaterial({ color: ribbon, roughness:0.35, metalness:0.35 });
+      // Cintas
       const rib1 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.74, 1.02), matRibbon);
       rib1.position.y = 0.01;
       group.add(rib1);
 
-      // cinta horizontal
       const rib2 = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.16, 1.02), matRibbon);
       rib2.position.y = 0.20;
       group.add(rib2);
 
-      // tapa con bisagra
+      // Tapa con “bisagra”
       const lidPivot = new THREE.Group();
       lidPivot.position.set(0, 0.36, -0.52);
       group.add(lidPivot);
@@ -606,7 +763,7 @@
       lid.position.set(0, 0.10, 0.52);
       lidPivot.add(lid);
 
-      // moño simple
+      // Moño simple
       const bow1 = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.06, 10, 18, Math.PI), matRibbon);
       bow1.rotation.set(Math.PI/2, 0, 0);
       bow1.position.set(-0.16, 0.50, 0.12);
@@ -616,7 +773,7 @@
       bow2.position.x = 0.16;
       group.add(bow2);
 
-      // hitbox invisible
+      // Hitbox invisible
       const hit = new THREE.Mesh(
         new THREE.BoxGeometry(1.35, 1.0, 1.35),
         new THREE.MeshBasicMaterial({ transparent:true, opacity:0 })
@@ -626,7 +783,7 @@
       hit.userData.parentGift = group;
       group.add(hit);
 
-      return { group, lidPivot, isOpen:false, busy:false };
+      return { group, lidPivot, isOpen:false, busy:false, baseY: group.position.y };
     }
 
     function onPointerDown(e){
@@ -665,7 +822,19 @@
       statusPill.innerHTML = "🎁 Abriendo regalo…";
 
       const giftObj = (which === "left") ? giftLeft : giftRight;
+
       openGiftAnim(giftObj, () => {
+        // confetti navideño
+        try{
+          confetti({
+            particleCount: 120,
+            spread: 70,
+            origin: { y: 0.55 },
+            scalar: 0.9,
+            ticks: 180
+          });
+        } catch {}
+
         setStored({ which, prize });
         updateUIFromStorage();
         openModal(prize.title, prize.sub);
@@ -683,7 +852,7 @@
       const toRot = -1.25;
 
       const fromS = giftObj.group.scale.x;
-      const popS1 = fromS * 1.10;
+      const popS1 = fromS * 1.12;
       const popS2 = fromS * 1.00;
 
       anims.push((t)=>{
@@ -702,7 +871,7 @@
         }
         giftObj.group.scale.setScalar(s);
 
-        giftObj.group.rotation.y += 0.008;
+        giftObj.group.rotation.y += 0.010;
 
         if(p >= 1){
           giftObj.isOpen = true;
@@ -716,14 +885,28 @@
 
     function animate(t=performance.now()){
       requestAnimationFrame(animate);
+
+      // “idle” lindo mientras no eligen
+      const stored = getStored();
+      if(!stored){
+        const bob = Math.sin(t * 0.003) * 6; // px
+        if(giftLeft && !giftLeft.busy){
+          giftLeft.group.position.y += (bob - giftLeft.group.position.y * 0 + 0); // se recalcula por positionGiftsToHands en resize
+        }
+        if(giftRight && !giftRight.busy){
+          // no tocamos y absoluto acá para no pelear con resize;
+          // el efecto principal ya está en rotación suave:
+        }
+        if(giftLeft && !giftLeft.busy)  giftLeft.group.rotation.z = Math.sin(t*0.002) * 0.03;
+        if(giftRight && !giftRight.busy) giftRight.group.rotation.z = -Math.sin(t*0.002) * 0.03;
+      }
+
       if(anims.length) anims = anims.filter(fn => fn(t) !== false);
       renderer.render(scene, camera);
     }
 
     // ========= STORAGE / UI =========
-    function setStored(obj){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
-    }
+    function setStored(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
     function getStored(){
       try{
         const raw = localStorage.getItem(STORAGE_KEY);
